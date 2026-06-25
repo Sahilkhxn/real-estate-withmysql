@@ -1,0 +1,177 @@
+<%- include('partials/header', { title: 'Find Your Dream Property', currentType: query.type }) %>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Verified Listings Only &nbsp;·&nbsp; <span class="pill">Zero Brokerage</span>
+    </div>
+    <h1>Find Your Perfect<br/><em>Property in India</em></h1>
+    <p class="hero-sub">Buy, Sell, or Rent — <strong><%= totalProperties %>+</strong> listings across Jaipur &amp; top cities. Direct owner contact, no middlemen.</p>
+
+    <!-- Search Card -->
+    <div class="search-card">
+      <div class="search-tabs" id="searchTabs">
+        <div class="stab <%= !query.type || query.type==='buy'  ? 'active' : '' %>" data-type="buy"> &nbsp;Buy</div>
+        <div class="stab <%= query.type==='rent' ? 'active' : '' %>" data-type="rent"> &nbsp;Rent</div>
+        <div class="stab <%= query.type==='sell' ? 'active' : '' %>" data-type="sell"> &nbsp;Sell</div>
+      </div>
+      <form id="searchForm" action="/properties" method="GET">
+        <input type="hidden" name="type" id="searchType" value="<%= query.type || 'buy' %>"/>
+        <div class="search-fields">
+          <div class="sf-loc">
+            <svg class="sf-loc-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <input type="text" name="q" class="sf-input" placeholder="Area, city, or landmark..." value="<%= query.q || '' %>"/>
+          </div>
+          <select name="category" class="sf-select">
+            <option value="">All Categories</option>
+            <option value="apartment"  <%= query.category==='apartment'  ? 'selected':'' %>>Apartment</option>
+            <option value="house"      <%= query.category==='house'      ? 'selected':'' %>>House / Villa</option>
+            <option value="plot"       <%= query.category==='plot'       ? 'selected':'' %>>Plot / Land</option>
+            <option value="commercial" <%= query.category==='commercial' ? 'selected':'' %>>Commercial</option>
+            <option value="pg"         <%= query.category==='pg'         ? 'selected':'' %>>PG / Hostel</option>
+          </select>
+          <select name="budget" class="sf-select" style="max-width:148px" onchange="setBudget(this.value)">
+            <option value="">Any Budget</option>
+            <option value="0-2500000">Under ₹25L</option>
+            <option value="2500000-5000000">₹25L – ₹50L</option>
+            <option value="5000000-10000000">₹50L – ₹1Cr</option>
+            <option value="10000000-">Above ₹1Cr</option>
+          </select>
+          <input type="hidden" name="minPrice" id="minPrice" value=""/>
+          <input type="hidden" name="maxPrice" id="maxPrice" value=""/>
+          <button type="submit" class="sf-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Search
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-item"><span class="stat-num"><%= totalProperties %>+</span><span class="stat-lbl">Properties Listed</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><span class="stat-num"><%= stats.available %>+</span><span class="stat-lbl">Available Now</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><span class="stat-num"><%= stats.cities %>+</span><span class="stat-lbl">Cities Covered</span></div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><span class="stat-num">₹0</span><span class="stat-lbl">Brokerage Fee</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <a href="/properties" class="fitem <%= !query.type && !query.category ? 'active' : '' %>">
+      <span class="fitem-icon">⚡</span>All
+    </a>
+    <div class="filter-sep"></div>
+    <a href="/properties?type=buy"  class="fitem <%= query.type==='buy'  ? 'active':'' %>"><span class="fitem-icon"></span>Buy</a>
+    <a href="/properties?type=rent" class="fitem <%= query.type==='rent' ? 'active':'' %>"><span class="fitem-icon"></span>Rent</a>
+    <a href="/properties?type=sell" class="fitem <%= query.type==='sell' ? 'active':'' %>"><span class="fitem-icon"></span>Sell</a>
+    <div class="filter-sep"></div>
+    <a href="/properties?category=apartment"  class="fitem <%= query.category==='apartment'  ? 'active':'' %>"><span class="fitem-icon"></span>Apartment</a>
+    <a href="/properties?category=house"      class="fitem <%= query.category==='house'      ? 'active':'' %>"><span class="fitem-icon"></span>House</a>
+    <a href="/properties?category=villa"      class="fitem <%= query.category==='villa'      ? 'active':'' %>"><span class="fitem-icon"></span>Villa</a>
+    <a href="/properties?category=plot"       class="fitem <%= query.category==='plot'       ? 'active':'' %>"><span class="fitem-icon"></span>Plot</a>
+    <a href="/properties?category=commercial" class="fitem <%= query.category==='commercial' ? 'active':'' %>"><span class="fitem-icon"></span>Commercial</a>
+    <div class="fsort-wrap">
+      <span class="fsort-label">Sort by</span>
+      <select class="fsort-select" onchange="location.href='/properties?sort='+this.value">
+        <option value="newest"     <%= query.sort==='newest'     ? 'selected':'' %>>Newest First</option>
+        <option value="price_asc"  <%= query.sort==='price_asc'  ? 'selected':'' %>>Price: Low → High</option>
+        <option value="price_desc" <%= query.sort==='price_desc' ? 'selected':'' %>>Price: High → Low</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURED -->
+<% if (featured && featured.length > 0) { %>
+<section class="page-section">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <span class="section-title"> Featured Properties</span>
+        <span class="section-count"><%= featured.length %> listings</span>
+      </div>
+      <a href="/properties?featured=true" class="section-link">View all →</a>
+    </div>
+    <div class="property-grid">
+      <% featured.forEach(property => { %><%- include('partials/property-card', { property }) %><% }) %>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<!-- LATEST -->
+<section class="page-section" style="padding-top:0">
+  <div class="container">
+    <div class="section-header">
+      <div>
+        <span class="section-title">Latest Listings</span>
+        <span class="section-count"><%= totalProperties %> available</span>
+      </div>
+      <a href="/properties" class="section-link">View all →</a>
+    </div>
+
+    <% if (properties && properties.length > 0) { %>
+    <div class="property-grid">
+      <% properties.forEach(property => { %><%- include('partials/property-card', { property }) %><% }) %>
+    </div>
+    <div class="text-center mt-24">
+      <a href="/properties" class="btn btn-outline btn-lg">View All <%= totalProperties %>+ Properties →</a>
+    </div>
+    <% } else { %>
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <h3>No properties yet</h3>
+      <p>Check back soon — new listings added daily.</p>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section style="background:linear-gradient(140deg,#002FA7,#0047CC);padding:52px 28px;margin-top:8px">
+  <div class="container">
+    <h2 style="text-align:center;color:#fff;font-size:1.5rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:32px">Why Choose <span style="color:#93BBFF">Webjinny?</span></h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px">
+      <% [
+        ['','Verified Listings','Every property personally verified before listing.'],
+        ['','Zero Brokerage','Direct owner contact. No hidden charges ever.'],
+        ['','Instant Contact','WhatsApp or call the owner in one tap.'],
+        ['','Smart Search','Filter by location, price, type and more.']
+      ].forEach(([icon,title,desc]) => { %>
+      <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px;text-align:center;backdrop-filter:blur(6px)">
+        <div style="font-size:2rem;margin-bottom:12px"><%= icon %></div>
+        <h3 style="color:#fff;font-size:0.95rem;font-weight:700;margin-bottom:6px"><%= title %></h3>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.82rem;line-height:1.6"><%= desc %></p>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<script>
+// Search tabs
+document.querySelectorAll('#searchTabs .stab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#searchTabs .stab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('searchType').value = tab.dataset.type;
+  });
+});
+// Budget helper
+function setBudget(val) {
+  const [min, max] = val.split('-');
+  document.getElementById('minPrice').value = min || '';
+  document.getElementById('maxPrice').value = max || '';
+}
+</script>
+
+<%- include('partials/footer') %>

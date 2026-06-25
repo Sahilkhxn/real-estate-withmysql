@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title><%= isEdit ? 'Edit' : 'Add' %> Property | Webjinny Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo"><span>Webjinny</span> Admin</div>
+    <ul class="sidebar-nav">
+      <li><a href="/admin/dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="/admin/properties">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Properties
+      </a></li>
+      <li><a href="/admin/properties/new" class="<%= !isEdit ? 'active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Add Property
+      </a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="/" style="color:rgba(255,255,255,0.5);font-size:0.82rem;display:block;margin-bottom:8px">← View Website</a>
+      <a href="/admin/logout" class="btn btn-danger btn-sm w-full" style="justify-content:center">Logout</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <% if (typeof flashError !== 'undefined' && flashError) { %>
+    <div class="flash flash-error">✕ <%= flashError %></div>
+    <% } %>
+
+    <div class="admin-topbar">
+      <h1 class="admin-page-title"><%= isEdit ? '  Edit Property' : '+ Add New Property' %></h1>
+      <a href="/admin/properties" class="btn btn-outline btn-sm">← Back to List</a>
+    </div>
+
+    <form action="<%= isEdit ? `/admin/properties/${property._id}?_method=PUT` : '/admin/properties' %>" 
+          method="POST" 
+          enctype="multipart/form-data"
+          class="admin-form">
+
+      <!-- CSRF Protection -->
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"/>
+
+      <!-- Basic Info -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2 class="admin-card-title">Basic Information</h2>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Property Title *</label>
+          <input type="text" name="title" class="form-control" required
+                 placeholder="e.g. 3 BHK Apartment in Malviya Nagar, Jaipur"
+                 value="<%= isEdit ? property.title : '' %>"/>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Listing Type *</label>
+            <select name="type" class="form-control" required>
+              <option value="">Select type</option>
+              <option value="buy" <%= isEdit && property.type === 'buy' ? 'selected' : '' %>>Buy</option>
+              <option value="rent" <%= isEdit && property.type === 'rent' ? 'selected' : '' %>>Rent</option>
+              <option value="sell" <%= isEdit && property.type === 'sell' ? 'selected' : '' %>>Sell</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Property Category</label>
+            <select name="propertyCategory" class="form-control">
+              <option value="apartment" <%= isEdit && property.propertyCategory === 'apartment' ? 'selected' : '' %>>Apartment</option>
+              <option value="house" <%= isEdit && property.propertyCategory === 'house' ? 'selected' : '' %>>House</option>
+              <option value="villa" <%= isEdit && property.propertyCategory === 'villa' ? 'selected' : '' %>>Villa</option>
+              <option value="plot" <%= isEdit && property.propertyCategory === 'plot' ? 'selected' : '' %>>Plot / Land</option>
+              <option value="commercial" <%= isEdit && property.propertyCategory === 'commercial' ? 'selected' : '' %>>Commercial</option>
+              <option value="pg" <%= isEdit && property.propertyCategory === 'pg' ? 'selected' : '' %>>PG / Hostel</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-control">
+              <option value="available" <%= isEdit && property.status === 'available' ? 'selected' : '' %>>Available</option>
+              <option value="sold" <%= isEdit && property.status === 'sold' ? 'selected' : '' %>>Sold</option>
+              <option value="rented" <%= isEdit && property.status === 'rented' ? 'selected' : '' %>>Rented</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <textarea name="description" class="form-control" rows="5" required
+            placeholder="Describe the property in detail — location advantages, nearby landmarks, construction quality, amenities..."><%= isEdit ? property.description : '' %></textarea>
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Price Details</h2></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Price (₹) *</label>
+            <input type="number" name="price" class="form-control" required
+                   placeholder="e.g. 4500000"
+                   value="<%= isEdit ? property.price : '' %>" min="0"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price Type</label>
+            <select name="priceType" class="form-control">
+              <option value="total" <%= isEdit && property.priceType === 'total' ? 'selected' : '' %>>Total Price</option>
+              <option value="per_month" <%= isEdit && property.priceType === 'per_month' ? 'selected' : '' %>>Per Month</option>
+              <option value="per_sqft" <%= isEdit && property.priceType === 'per_sqft' ? 'selected' : '' %>>Per Sq.ft</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Location</h2></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Area / Locality *</label>
+            <input type="text" name="locationArea" class="form-control" required
+                   placeholder="e.g. Malviya Nagar, Vaishali Nagar"
+                   value="<%= property.location && property.location.area ? property.location.area : '' %>"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">City *</label>
+            <input type="text" name="city" class="form-control" required
+                   placeholder="e.g. Jaipur"
+                   value="<%= property.location && property.location.city ? property.location.city : 'Jaipur' %>"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">State</label>
+            <input type="text" name="state" class="form-control"
+                   placeholder="Rajasthan"
+                   value="<%= property.location && property.location.state ? property.location.state : 'Rajasthan' %>"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pincode</label>
+            <input type="text" name="pincode" class="form-control"
+                   placeholder="302001"
+                   value="<%= property.location && property.location.pincode ? property.location.pincode : '' %>"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Property Specs -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Property Specs</h2></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Bedrooms</label>
+            <input type="number" name="bedrooms" class="form-control" min="0"
+                   placeholder="0" value="<%= isEdit ? property.bedrooms : 0 %>"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bathrooms</label>
+            <input type="number" name="bathrooms" class="form-control" min="0"
+                   placeholder="0" value="<%= isEdit ? property.bathrooms : 0 %>"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Area (Sq. Ft)</label>
+            <input type="number" name="propArea" class="form-control" min="0"
+                   placeholder="1200" value="<%= property.area || '' %>"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Amenities (comma separated)</label>
+          <input type="text" name="amenities" class="form-control"
+                 placeholder="Parking, Lift, 24/7 Water, Power Backup, Security, Garden, Gym"
+                 value="<%= isEdit && property.amenities ? property.amenities.join(', ') : '' %>"/>
+        </div>
+
+        <div class="form-group" style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" name="featured" id="featured" value="true"
+                 <%= isEdit && property.featured ? 'checked' : '' %>
+                 style="width:18px;height:18px;cursor:pointer"/>
+          <label for="featured" style="cursor:pointer;font-weight:600;font-size:0.9rem">⭐ Mark as Featured (shown on homepage)</label>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Contact Details</h2></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Contact Number *</label>
+            <input type="tel" name="contactNumber" class="form-control" required
+                   placeholder="+91 98765 43210"
+                   value="<%= isEdit ? property.contactNumber : '' %>"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp Number</label>
+            <input type="tel" name="whatsappNumber" class="form-control"
+                   placeholder="+91 98765 43210 (if different)"
+                   value="<%= isEdit ? (property.whatsappNumber || '') : '' %>"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Photos</h2></div>
+
+        <!-- Existing photos (edit mode) -->
+        <% if (isEdit && property.photos && property.photos.length > 0) { %>
+        <div style="margin-bottom:20px">
+          <label class="form-label">Current Photos</label>
+          <div class="photo-preview-grid">
+            <% property.photos.forEach((photo, i) => { %>
+            <div class="photo-preview-item" id="existing-<%= i %>">
+              <img src="/uploads/<%= photo %>" alt="Photo <%= i+1 %>"/>
+              <button type="button" class="remove-photo"
+                      onclick="removeExistingPhoto('<%= photo %>', this.parentElement)">×</button>
+            </div>
+            <% }) %>
+          </div>
+          <!-- Hidden inputs for existing photos to keep -->
+          <div id="existingPhotosInputs">
+            <% property.photos.forEach(photo => { %>
+            <input type="hidden" name="existingPhotos[]" value="<%= photo %>" class="existing-photo-input"/>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+
+        <div class="photo-upload-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p>Click to upload or drag & drop photos</p>
+          <small>JPEG, PNG, WebP · Max 5MB each · Up to 10 photos</small>
+        </div>
+        <input type="file" id="photoInput" name="photos" 
+               accept="image/jpeg,image/jpg,image/png,image/webp"
+               multiple style="display:none" 
+               onchange="previewPhotos(this)"/>
+
+        <div class="photo-preview-grid" id="newPhotoPreview"></div>
+      </div>
+
+      <!-- Submit -->
+      <div style="display:flex;gap:12px;justify-content:flex-end;margin-bottom:32px">
+        <a href="/admin/properties" class="btn btn-outline btn-lg">Cancel</a>
+        <button type="submit" class="btn btn-primary btn-lg">
+          <%= isEdit ? '💾 Save Changes' : '🚀 Publish Property' %>
+        </button>
+      </div>
+    </form>
+  </main>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+// Drag & drop upload area
+const dropArea = document.getElementById('dropArea');
+['dragenter', 'dragover'].forEach(e => {
+  dropArea.addEventListener(e, (ev) => { ev.preventDefault(); dropArea.classList.add('dragging'); });
+});
+['dragleave', 'drop'].forEach(e => {
+  dropArea.addEventListener(e, (ev) => { ev.preventDefault(); dropArea.classList.remove('dragging'); });
+});
+dropArea.addEventListener('drop', (ev) => {
+  const files = ev.dataTransfer.files;
+  const input = document.getElementById('photoInput');
+  const dt = new DataTransfer();
+  for (const f of files) dt.items.add(f);
+  input.files = dt.files;
+  previewPhotos(input);
+});
+
+function previewPhotos(input) {
+  const container = document.getElementById('newPhotoPreview');
+  container.innerHTML = '';
+  Array.from(input.files).slice(0, 10).forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const div = document.createElement('div');
+      div.className = 'photo-preview-item';
+      div.innerHTML = `<img src="${e.target.result}" alt="New photo ${i+1}"/>`;
+      container.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeExistingPhoto(filename, container) {
+  container.remove();
+  // Remove the hidden input
+  const inputs = document.querySelectorAll('.existing-photo-input');
+  inputs.forEach(inp => {
+    if (inp.value === filename) inp.remove();
+  });
+}
+</script>
+</body>
+</html>

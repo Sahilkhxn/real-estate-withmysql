@@ -1,0 +1,128 @@
+<%- include('partials/header', { title: 'All Properties', currentType: query.type }) %>
+
+ <!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <a class="fitem <%= !query.type && !query.category ? 'active' : '' %>" onclick="location.href='/properties'">
+      <span class="fitem-icon">⚡</span>All
+    </a>
+    <div class="filter-sep"></div>
+    <a class="fitem <%= query.type==='buy'  ? 'active':'' %>" onclick="setFilter('type','buy')"><span class="fitem-icon">🏠</span>Buy</a>
+    <a class="fitem <%= query.type==='rent' ? 'active':'' %>" onclick="setFilter('type','rent')"><span class="fitem-icon">🔑</span>Rent</a>
+    <a class="fitem <%= query.type==='sell' ? 'active':'' %>" onclick="setFilter('type','sell')"><span class="fitem-icon">📋</span>Sell</a>
+    <div class="filter-sep"></div>
+    <a class="fitem <%= query.category==='apartment'  ? 'active':'' %>" onclick="setFilter('category','apartment')"><span class="fitem-icon">🏢</span>Apartment</a>
+    <a class="fitem <%= query.category==='house'      ? 'active':'' %>" onclick="setFilter('category','house')"><span class="fitem-icon">🏡</span>House</a>
+    <a class="fitem <%= query.category==='villa'      ? 'active':'' %>" onclick="setFilter('category','villa')"><span class="fitem-icon">🏰</span>Villa</a>
+    <a class="fitem <%= query.category==='plot'       ? 'active':'' %>" onclick="setFilter('category','plot')"><span class="fitem-icon">🌱</span>Plot</a>
+    <a class="fitem <%= query.category==='commercial' ? 'active':'' %>" onclick="setFilter('category','commercial')"><span class="fitem-icon">🏪</span>Commercial</a>
+    <a class="fitem <%= query.category==='pg'         ? 'active':'' %>" onclick="setFilter('category','pg')"><span class="fitem-icon">🛏</span>PG</a>
+    <div class="fsort-wrap">
+      <span class="fsort-label">Sort by</span>
+      <select class="fsort-select" onchange="setFilter('sort', this.value)">
+        <option value="newest"     <%= query.sort==='newest'     ? 'selected':'' %>>Newest First</option>
+        <option value="price_asc"  <%= query.sort==='price_asc'  ? 'selected':'' %>>Price: Low → High</option>
+        <option value="price_desc" <%= query.sort==='price_desc' ? 'selected':'' %>>Price: High → Low</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+
+<div class="container">
+  <div class="page-section">
+    <!-- Search bar inline -->
+    <form id="searchForm" action="/properties" method="GET" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+      <input type="text" name="q" class="form-control" style="flex:1;min-width:200px;background:white"
+             placeholder="Search location, title..." value="<%= query.q || '' %>" />
+      <input type="hidden" name="type" value="<%= query.type || '' %>"/>
+      <input type="hidden" name="category" value="<%= query.category || '' %>"/>
+      <input type="number" name="minPrice" class="form-control" style="max-width:130px;background:white"
+             placeholder="Min ₹" value="<%= query.minPrice || '' %>" min="0"/>
+      <input type="number" name="maxPrice" class="form-control" style="max-width:130px;background:white"
+             placeholder="Max ₹" value="<%= query.maxPrice || '' %>" min="0"/>
+      <button type="submit" class="btn btn-primary">Search</button>
+      <% if (query.q || query.type || query.category || query.minPrice || query.maxPrice) { %>
+        <a href="/properties" class="btn btn-outline">Clear</a>
+      <% } %>
+    </form>
+
+    <div class="section-header">
+      <h1 class="section-title">
+        <% if (query.type) { %><%= query.type.charAt(0).toUpperCase() + query.type.slice(1) %> Properties<% } 
+           else if (query.category) { %><%= query.category.charAt(0).toUpperCase() + query.category.slice(1) %>s<% } 
+           else { %>All Properties<% } %>
+      </h1>
+      <span class="section-count"><%= total %> listing<%= total !== 1 ? 's' : '' %> found</span>
+    </div>
+
+    <% if (properties && properties.length > 0) { %>
+    <div class="property-grid">
+      <% properties.forEach(property => { %>
+        <%- include('partials/property-card', { property }) %>
+      <% }) %>
+    </div>
+
+    <!-- PAGINATION -->
+    <% if (totalPages > 1) { %>
+    <div class="pagination">
+      <% if (currentPage > 1) { %>
+        <a href="/properties?<%= new URLSearchParams({...query, page: currentPage - 1}).toString() %>" class="page-btn">‹</a>
+      <% } else { %>
+        <span class="page-btn disabled">‹</span>
+      <% } %>
+
+      <% 
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+        if (startPage > 1) { %>
+          <a href="/properties?<%= new URLSearchParams({...query, page: 1}).toString() %>" class="page-btn">1</a>
+          <% if (startPage > 2) { %><span class="page-btn" style="cursor:default">…</span><% } %>
+      <% } %>
+
+      <% for (let i = startPage; i <= endPage; i++) { %>
+        <a href="/properties?<%= new URLSearchParams({...query, page: i}).toString() %>" 
+           class="page-btn <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+      <% } %>
+
+      <% if (endPage < totalPages) { %>
+        <% if (endPage < totalPages - 1) { %><span class="page-btn" style="cursor:default">…</span><% } %>
+        <a href="/properties?<%= new URLSearchParams({...query, page: totalPages}).toString() %>" class="page-btn"><%= totalPages %></a>
+      <% } %>
+
+      <% if (currentPage < totalPages) { %>
+        <a href="/properties?<%= new URLSearchParams({...query, page: currentPage + 1}).toString() %>" class="page-btn">›</a>
+      <% } else { %>
+        <span class="page-btn disabled">›</span>
+      <% } %>
+    </div>
+    <% } %>
+
+    <% } else { %>
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <h3>No properties found</h3>
+      <p>Try different search terms or remove some filters.</p>
+      <a href="/properties" class="btn btn-primary mt-16">Clear Filters</a>
+    </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+function setFilter(key, val) {
+  const params = new URLSearchParams(window.location.search);
+  const current = params.get(key);
+  if (current === val) {
+    params.delete(key);
+  } else {
+    params.set(key, val);
+  }
+  params.delete('page');
+  window.location.href = '/properties?' + params.toString();
+}
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,200 @@
+<%
+function formatPrice(n) {
+  if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1) + ' Cr';
+  if (n >= 100000) return '₹' + (n / 100000).toFixed(1) + ' L';
+  return '₹' + n.toLocaleString('en-IN');
+}
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Manage Properties | Webjinny Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo"><span>Webjinny</span> Admin</div>
+    <ul class="sidebar-nav">
+      <li><a href="/admin/dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="/admin/properties" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Properties
+      </a></li>
+      <li><a href="/admin/properties/new">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Add Property
+      </a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="/" style="color:rgba(255,255,255,0.5);font-size:0.82rem;display:block;margin-bottom:8px">← View Website</a>
+      <a href="/admin/logout" class="btn btn-danger btn-sm w-full" style="justify-content:center">Logout</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <% if (typeof flashSuccess !== 'undefined' && flashSuccess) { %>
+    <div class="flash flash-success">✓ <%= flashSuccess %></div>
+    <% } %>
+    <% if (typeof flashError !== 'undefined' && flashError) { %>
+    <div class="flash flash-error">✕ <%= flashError %></div>
+    <% } %>
+
+    <div class="admin-topbar">
+      <h1 class="admin-page-title">Properties (<%= total %>)</h1>
+      <a href="/admin/properties/new" class="btn btn-primary">+ Add Property</a>
+    </div>
+
+    <!-- Filter bar -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+      <form action="/admin/properties" method="GET" style="display:flex;gap:10px;flex-wrap:wrap">
+        <input type="text" name="q" class="form-control" style="max-width:250px;background:white"
+               placeholder="Search title, location..." value="<%= query.q || '' %>"/>
+        <select name="status" class="form-control" style="max-width:150px;background:white">
+          <option value="">All Status</option>
+          <option value="available" <%= query.status === 'available' ? 'selected' : '' %>>Available</option>
+          <option value="sold" <%= query.status === 'sold' ? 'selected' : '' %>>Sold</option>
+          <option value="rented" <%= query.status === 'rented' ? 'selected' : '' %>>Rented</option>
+        </select>
+        <select name="type" class="form-control" style="max-width:130px;background:white">
+          <option value="">All Types</option>
+          <option value="buy" <%= query.type === 'buy' ? 'selected' : '' %>>Buy</option>
+          <option value="rent" <%= query.type === 'rent' ? 'selected' : '' %>>Rent</option>
+          <option value="sell" <%= query.type === 'sell' ? 'selected' : '' %>>Sell</option>
+        </select>
+        <button type="submit" class="btn btn-outline">Filter</button>
+        <% if (query.q || query.status || query.type) { %>
+          <a href="/admin/properties" class="btn" style="background:var(--bg-page)">Clear</a>
+        <% } %>
+      </form>
+    </div>
+
+    <div class="admin-card" style="padding:0;overflow:hidden">
+      <% if (properties && properties.length > 0) { %>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Photo</th>
+              <th>Title</th>
+              <th>Location</th>
+              <th>Price</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Featured</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% properties.forEach(p => { %>
+            <tr id="row-<%= p._id %>">
+              <td>
+                <% if (p.photos && p.photos.length > 0) { %>
+                  <img src="/uploads/<%= p.photos[0] %>" alt="" class="table-img"/>
+                <% } else { %>
+                  <div class="table-img" style="background:var(--bg-page);display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.65rem;border-radius:6px">No img</div>
+                <% } %>
+              </td>
+              <td style="max-width:200px">
+                <div style="font-weight:600;font-size:0.88rem"><%= p.title.slice(0,45) %><%= p.title.length > 45 ? '...' : '' %></div>
+                <div style="font-size:0.75rem;color:var(--text-light)"><%= p.propertyCategory %> · <%= p.photos?.length || 0 %> photos</div>
+              </td>
+              <td style="font-size:0.85rem"><%= p.location.area %>, <%= p.location.city %></td>
+              <td><strong><%= formatPrice(p.price) %></strong></td>
+              <td><span class="badge badge-blue"><%= p.type %></span></td>
+              <td>
+                <select onchange="updateStatus('<%= p._id %>', this.value)" 
+                        style="padding:4px 8px;border:1.5px solid var(--border);border-radius:6px;font-size:0.8rem;cursor:pointer">
+                  <option value="available" <%= p.status === 'available' ? 'selected' : '' %>>✅ Available</option>
+                  <option value="sold" <%= p.status === 'sold' ? 'selected' : '' %>>🔴 Sold</option>
+                  <option value="rented" <%= p.status === 'rented' ? 'selected' : '' %>>🟡 Rented</option>
+                </select>
+              </td>
+              <td>
+                <button onclick="toggleFeatured('<%= p._id %>', <%= p.featured %>)"
+                        style="background:none;border:none;cursor:pointer;font-size:1.2rem">
+                  <%= p.featured ? '⭐' : '☆' %>
+                </button>
+              </td>
+              <td style="font-size:0.8rem;color:var(--text-light)">
+                <%= new Date(p.createdAt).toLocaleDateString('en-IN', {day:'2-digit',month:'short'}) %>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <a href="/admin/properties/<%= p._id %>/edit" class="btn btn-outline btn-sm">Edit</a>
+                  <button onclick="deleteProperty('<%= p._id %>')" class="btn btn-danger btn-sm">Del</button>
+                </div>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <% if (totalPages > 1) { %>
+      <div class="pagination" style="padding:16px 0">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+        <a href="/admin/properties?<%= new URLSearchParams({...query, page: i}).toString() %>"
+           class="page-btn <%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+        <% } %>
+      </div>
+      <% } %>
+
+      <% } else { %>
+      <div class="empty-state">
+        <h3>No properties found</h3>
+        <a href="/admin/properties/new" class="btn btn-primary mt-16">Add First Property</a>
+      </div>
+      <% } %>
+    </div>
+  </main>
+</div>
+
+<script src="/js/main.js"></script>
+<script>
+async function updateStatus(id, status) {
+  try {
+    const res = await fetch(`/admin/properties/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    const data = await res.json();
+    if (!data.success) alert('Update failed');
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function toggleFeatured(id, current) {
+  try {
+    const res = await fetch(`/admin/properties/${id}/featured`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ featured: !current })
+    });
+    const data = await res.json();
+    if (data.success) location.reload();
+  } catch(e) { alert('Error'); }
+}
+
+async function deleteProperty(id) {
+  if (!confirm('Delete this property? This cannot be undone.')) return;
+  try {
+    const res = await fetch(`/admin/properties/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      const row = document.getElementById('row-' + id);
+      if (row) row.remove();
+    } else alert('Delete failed');
+  } catch(e) { alert('Error'); }
+}
+</script>
+</body>
+</html>

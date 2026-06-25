@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title + ' | Webjinny' : 'Webjinny – Real Estate' %></title>
+  <meta name="description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'Find your dream property – buy, sell, or rent in Jaipur and across India.' %>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* Page-specific overrides can go in templates */
+    <%- typeof extraCSS !== 'undefined' ? extraCSS : '' %>
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <span>Webjinny</span><em></em>
+    </a>
+
+    <button class="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links">
+      <li><a href="/?type=buy" class="<%= typeof currentType !== 'undefined' && currentType === 'buy' ? 'active' : '' %>">Buy</a></li>
+      <li><a href="/?type=rent" class="<%= typeof currentType !== 'undefined' && currentType === 'rent' ? 'active' : '' %>">Rent</a></li>
+      <li><a href="/?type=sell" class="<%= typeof currentType !== 'undefined' && currentType === 'sell' ? 'active' : '' %>">Sell</a></li>
+      <li><a href="/properties">All Properties</a></li>
+    </ul>
+  </div>
+</nav>

@@ -1,0 +1,94 @@
+<%
+// Helper to format price in Indian format
+function formatPrice(n) {
+  if (n >= 10000000) return '₹' + (n / 10000000).toFixed(2) + ' Cr';
+  if (n >= 100000) return '₹' + (n / 100000).toFixed(2) + ' L';
+  if (n >= 1000) return '₹' + (n / 1000).toFixed(0) + 'K';
+  return '₹' + n.toLocaleString('en-IN');
+}
+
+const priceLabel = { total: '', per_month: '/mo', per_sqft: '/sqft' };
+const typeColor = { buy: 'type-buy', sell: 'type-sell', rent: 'type-rent' };
+const statusColor = { available: 'status-available', sold: 'status-sold', rented: 'status-rented' };
+%>
+
+<a href="/property/<%= property._id %>" class="property-card" 
+   data-type="<%= property.type %>" 
+   data-category="<%= property.propertyCategory %>">
+  
+  <div class="card-img">
+    <% if (property.photos && property.photos.length > 0) { %>
+      <img src="/uploads/<%= property.photos[0] %>" 
+           alt="<%= property.title %>" 
+           loading="lazy" />
+    <% } else { %>
+      <div class="card-img-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="m21 15-5-5L5 21"/>
+        </svg>
+        <span>No Photo</span>
+      </div>
+    <% } %>
+
+    <!-- Status badge -->
+    <span class="status-badge <%= statusColor[property.status] || 'status-available' %>">
+      <%= property.status === 'available' ? '● Available' : property.status === 'sold' ? '✕ Sold' : '⟳ Rented' %>
+    </span>
+
+    <!-- Type badge -->
+    <span class="type-badge <%= typeColor[property.type] || 'type-buy' %>">
+      <%= property.type ? property.type.charAt(0).toUpperCase() + property.type.slice(1) : '' %>
+    </span>
+
+    <!-- Price badge — signature split corner -->
+    <div class="price-badge">
+      <%= formatPrice(property.price) %>
+      <% if (property.priceType && property.priceType !== 'total') { %>
+        <small><%= priceLabel[property.priceType] %></small>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <h3 class="card-title"><%= property.title %></h3>
+    <div class="card-location">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      <%= property.location.area %>, <%= property.location.city %>
+    </div>
+
+    <div class="card-meta">
+      <% if (property.bedrooms > 0) { %>
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 4v16M22 4v16M2 12h20M2 8h4a2 2 0 012 2v2H2V8zM16 8h6v4h-8v-2a2 2 0 012-2z"/>
+        </svg>
+        <%= property.bedrooms %> BHK
+      </span>
+      <% } %>
+      <% if (property.bathrooms > 0) { %>
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 6H5a2 2 0 00-2 2v10h14V8a2 2 0 00-2-2h-4M9 6a3 3 0 116 0H9"/>
+        </svg>
+        <%= property.bathrooms %> Bath
+      </span>
+      <% } %>
+      <% if (property.area) { %>
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+        </svg>
+        <%= property.area %> sq.ft
+      </span>
+      <% } %>
+      <% if (!property.bedrooms && !property.bathrooms && !property.area) { %>
+      <span><%= property.propertyCategory ? property.propertyCategory.charAt(0).toUpperCase() + property.propertyCategory.slice(1) : '' %></span>
+      <% } %>
+    </div>
+  </div>
+</a>

@@ -1,0 +1,54 @@
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand"><span>Webjinny</span></div>
+        <p class="footer-desc">India's trusted real estate platform. Find properties for buy, sell, and rent across top cities. No registration required — browse freely.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <ul class="footer-links">
+          <li><a href="/?type=buy">Buy Property</a></li>
+          <li><a href="/?type=rent">Rent Property</a></li>
+          <li><a href="/?type=sell">Sell Property</a></li>
+          <li><a href="/properties">All Listings</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Property Type</h4>
+        <ul class="footer-links">
+          <li><a href="/?category=apartment">Apartments</a></li>
+          <li><a href="/?category=house">Houses</a></li>
+          <li><a href="/?category=villa">Villas</a></li>
+          <li><a href="/?category=plot">Plots</a></li>
+          <li><a href="/?category=commercial">Commercial</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul class="footer-links">
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="/admin/login">Admin Login</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; <%= new Date().getFullYear() %> Webjinny. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<!-- Scroll to top -->
+<button class="scroll-top" aria-label="Scroll to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+
+<script src="/js/main.js"></script>
+<%- typeof extraJS !== 'undefined' ? extraJS : '' %>
+</body>
+</html>
