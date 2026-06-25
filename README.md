@@ -1,4 +1,4 @@
-# 🏠 PropFind — Real Estate Listing Platform
+# 🏠 Webjinny — Real Estate Listing Platform
 
 OLX-inspired real estate website. Node.js + Express + MongoDB + EJS.
 
@@ -95,14 +95,6 @@ realestate2/
 ---
 
 ## 🔧 .env Config
-```
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/realestate
-JWT_SECRET=change_this_in_production
-SESSION_SECRET=change_this_in_production
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
-```
 
 ---
 
