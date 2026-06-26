@@ -4,19 +4,19 @@
 <div class="filter-bar">
   <div class="filter-inner">
     <a class="fitem <%= !query.type && !query.category ? 'active' : '' %>" onclick="location.href='/properties'">
-      <span class="fitem-icon">⚡</span>All
+      <span class="fitem-icon"> </span>All
     </a>
     <div class="filter-sep"></div>
-    <a class="fitem <%= query.type==='buy'  ? 'active':'' %>" onclick="setFilter('type','buy')"><span class="fitem-icon">🏠</span>Buy</a>
-    <a class="fitem <%= query.type==='rent' ? 'active':'' %>" onclick="setFilter('type','rent')"><span class="fitem-icon">🔑</span>Rent</a>
-    <a class="fitem <%= query.type==='sell' ? 'active':'' %>" onclick="setFilter('type','sell')"><span class="fitem-icon">📋</span>Sell</a>
+    <a class="fitem <%= query.type==='buy'  ? 'active':'' %>" onclick="setFilter('type','buy')"><span class="fitem-icon"></span>Buy</a>
+    <a class="fitem <%= query.type==='rent' ? 'active':'' %>" onclick="setFilter('type','rent')"><span class="fitem-icon"></span>Rent</a>
+    <a class="fitem <%= query.type==='sell' ? 'active':'' %>" onclick="setFilter('type','sell')"><span class="fitem-icon"></span>Sell</a>
     <div class="filter-sep"></div>
-    <a class="fitem <%= query.category==='apartment'  ? 'active':'' %>" onclick="setFilter('category','apartment')"><span class="fitem-icon">🏢</span>Apartment</a>
-    <a class="fitem <%= query.category==='house'      ? 'active':'' %>" onclick="setFilter('category','house')"><span class="fitem-icon">🏡</span>House</a>
-    <a class="fitem <%= query.category==='villa'      ? 'active':'' %>" onclick="setFilter('category','villa')"><span class="fitem-icon">🏰</span>Villa</a>
-    <a class="fitem <%= query.category==='plot'       ? 'active':'' %>" onclick="setFilter('category','plot')"><span class="fitem-icon">🌱</span>Plot</a>
-    <a class="fitem <%= query.category==='commercial' ? 'active':'' %>" onclick="setFilter('category','commercial')"><span class="fitem-icon">🏪</span>Commercial</a>
-    <a class="fitem <%= query.category==='pg'         ? 'active':'' %>" onclick="setFilter('category','pg')"><span class="fitem-icon">🛏</span>PG</a>
+    <a class="fitem <%= query.category==='apartment'  ? 'active':'' %>" onclick="setFilter('category','apartment')"><span class="fitem-icon"></span>Apartment</a>
+    <a class="fitem <%= query.category==='house'      ? 'active':'' %>" onclick="setFilter('category','house')"><span class="fitem-icon"></span>House</a>
+    <a class="fitem <%= query.category==='villa'      ? 'active':'' %>" onclick="setFilter('category','villa')"><span class="fitem-icon"></span>Villa</a>
+    <a class="fitem <%= query.category==='plot'       ? 'active':'' %>" onclick="setFilter('category','plot')"><span class="fitem-icon"></span>Plot</a>
+    <a class="fitem <%= query.category==='commercial' ? 'active':'' %>" onclick="setFilter('category','commercial')"><span class="fitem-icon"></span>Commercial</a>
+    <a class="fitem <%= query.category==='pg'         ? 'active':'' %>" onclick="setFilter('category','pg')"><span class="fitem-icon"></span>PG</a>
     <div class="fsort-wrap">
       <span class="fsort-label">Sort by</span>
       <select class="fsort-select" onchange="setFilter('sort', this.value)">
