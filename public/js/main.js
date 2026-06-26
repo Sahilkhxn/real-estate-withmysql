@@ -137,7 +137,7 @@ function initEnquiryForm() {
       });
       const result = await res.json();
       if (result.success) {
-        form.innerHTML = `<div class="flash flash-success">✓ Enquiry sent! We will contact you shortly.</div>`;
+        form.innerHTML = `<div class="flash flash-success">Enquiry sent! We will contact you shortly.</div>`;
       } else {
         throw new Error(result.message || 'Failed');
       }

@@ -1,4 +1,15 @@
+const nodemailer = require('nodemailer');
 const Property = require('../models/Property');
+const Enquiry = require('../models/Enquiry');
+
+// Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 // Escape special regex characters to prevent ReDoS attacks
 function escapeRegex(str) {
@@ -10,7 +21,6 @@ exports.homepage = async (req, res) => {
   try {
     const { type, category, sort } = req.query;
 
-    // Public: sirf available properties dikhao — sold/rented HIDE
     const filter = { status: 'available' };
     if (type) filter.type = type;
     if (category) filter.propertyCategory = category;
@@ -22,7 +32,7 @@ exports.homepage = async (req, res) => {
     const [properties, featured, totalProperties, availableCount] = await Promise.all([
       Property.find(filter).sort(sortObj).limit(12).lean(),
       Property.find({ featured: true, status: 'available' }).sort({ createdAt: -1 }).limit(3).lean(),
-      Property.countDocuments({ status: 'available' }), // count only available
+      Property.countDocuments({ status: 'available' }),
       Property.countDocuments({ status: 'available' })
     ]);
 
@@ -48,7 +58,6 @@ exports.listProperties = async (req, res) => {
     const limit = 12;
     const skip = (Number(page) - 1) * limit;
 
-    // Public: sirf available dikhao
     const filter = { status: 'available' };
     if (type) filter.type = type;
     if (category) filter.propertyCategory = category;
@@ -58,7 +67,6 @@ exports.listProperties = async (req, res) => {
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
 
-    // Regex escape — ReDoS protection
     if (q && q.trim()) {
       const safeQ = escapeRegex(q.trim().slice(0, 100));
       filter.$or = [
@@ -94,7 +102,6 @@ exports.listProperties = async (req, res) => {
 // ---- Single property detail ----
 exports.propertyDetail = async (req, res) => {
   try {
-    // Sold/rented property detail bhi public ko mat dikhao
     const property = await Property.findOne({
       _id: req.params.id,
       status: 'available'
@@ -115,12 +122,35 @@ exports.propertyDetail = async (req, res) => {
 exports.submitEnquiry = async (req, res) => {
   try {
     const { name, phone, email, message, propertyId } = req.body;
+
     if (!name || !phone || !message) {
       return res.status(400).json({ success: false, message: 'Name, phone and message are required.' });
     }
-    console.log('Enquiry received:', { name, phone, email, message, propertyId });
+
+    // MongoDB mein save karo
+    const enquiry = new Enquiry({ name, phone, email, message, propertyId });
+    await enquiry.save();
+    console.log('Enquiry saved:', enquiry);
+
+    // Email bhejo admin ko
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: `New Property Enquiry - ${name}`,
+      html: `
+        <h3>New Enquiry Received - Webjinny</h3>
+        <p><b>Name:</b> ${name}</p>
+        <p><b>Phone:</b> ${phone}</p>
+        <p><b>Email:</b> ${email || 'Not provided'}</p>
+        <p><b>Message:</b> ${message}</p>
+        <p><b>Property ID:</b> ${propertyId}</p>
+      `,
+    });
+
     res.json({ success: true, message: 'Enquiry submitted!' });
+
   } catch (err) {
+    console.error('Enquiry error:', err);
     res.status(500).json({ success: false, message: 'Failed to submit enquiry.' });
   }
 };

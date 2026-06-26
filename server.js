@@ -11,8 +11,8 @@ const PORT = process.env.PORT || 3000;
 
 // ─── Database ───────────────────────────────────────────────────
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/realestate')
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => { console.error('❌ MongoDB error:', err); process.exit(1); });
+  .then(() => console.log(' MongoDB connected'))
+  .catch(err => { console.error(' MongoDB error:', err); process.exit(1); });
 
 // ─── View Engine ─────────────────────────────────────────────────
 app.set('view engine', 'ejs');
@@ -48,6 +48,6 @@ app.use((err, req, res, next) => {
 
 // ─── Start ────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n🏠 Webjinny running at http://localhost:${PORT}`);
+  console.log(`\n Webjinny running at http://localhost:${PORT}`);
   console.log(`   Admin panel: http://localhost:${PORT}/admin/login\n`);
 });
