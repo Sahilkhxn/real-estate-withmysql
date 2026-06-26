@@ -18,8 +18,8 @@ const statusColor = { available: 'status-available', sold: 'status-sold', rented
   
   <div class="card-img">
     <% if (property.photos && property.photos.length > 0) { %>
-      <img src="/uploads/<%= property.photos[0] %>" 
-           alt="<%= property.title %>" 
+<img src="<%= property.photos[0] %>"
+      alt="<%= property.title %>" 
            loading="lazy" />
     <% } else { %>
       <div class="card-img-placeholder">
