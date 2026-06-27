@@ -1,6 +1,7 @@
 const Admin = require('../models/Admin');
 const Property = require('../models/Property');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 
 // Escape special regex chars to prevent ReDoS
 function escapeRegex(str) {
@@ -231,5 +232,110 @@ exports.toggleFeatured = async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+// ---- Forgot Password Page ----
+exports.forgotPasswordPage = (req, res) => {
+  res.render('admin/forgot-password', { error: null, success: null });
+};
+
+// ---- Send OTP ----
+exports.sendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const admin = await Admin.findOne({ email });
+    if (!admin) return res.render('admin/forgot-password', { error: 'No admin found with this email.', success: null });
+
+    // Generate 6 digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+
+    admin.resetOTP = otp;
+    admin.resetOTPExpiry = expiry;
+    await admin.save();
+
+    // Send email
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT),
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Webjinny Admin — Password Reset OTP',
+      html: `
+        <h3>Password Reset OTP</h3>
+        <p>Your OTP is: <b style="font-size:1.5rem">${otp}</b></p>
+        <p>Valid for 10 minutes only.</p>
+        <p>If you didn't request this, ignore this email.</p>
+      `
+    });
+
+    res.redirect(`/admin/verify-otp?email=${encodeURIComponent(email)}`);
+  } catch (err) {
+    console.error(err);
+    res.render('admin/forgot-password', { error: 'Failed to send OTP.', success: null });
+  }
+};
+
+// ---- Verify OTP Page ----
+exports.verifyOTPPage = (req, res) => {
+  res.render('admin/verify-otp', { error: null, email: req.query.email });
+};
+
+// ---- Verify OTP ----
+exports.verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const admin = await Admin.findOne({ email });
+
+    if (!admin || admin.resetOTP !== otp || admin.resetOTPExpiry < new Date()) {
+      return res.render('admin/verify-otp', { error: 'Invalid or expired OTP.', email });
+    }
+
+    res.redirect(`/admin/reset-password?email=${encodeURIComponent(email)}&otp=${otp}`);
+  } catch (err) {
+    console.error(err);
+    res.render('admin/verify-otp', { error: 'Something went wrong.', email: req.body.email });
+  }
+};
+
+// ---- Reset Password Page ----
+exports.resetPasswordPage = (req, res) => {
+  res.render('admin/reset-password', { error: null, email: req.query.email, otp: req.query.otp });
+};
+
+// ---- Reset Password ----
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, otp, password, confirmPassword } = req.body;
+
+    if (password !== confirmPassword) {
+      return res.render('admin/reset-password', { error: 'Passwords do not match.', email, otp });
+    }
+    if (password.length < 6) {
+      return res.render('admin/reset-password', { error: 'Password must be at least 6 characters.', email, otp });
+    }
+
+    const admin = await Admin.findOne({ email });
+    if (!admin || admin.resetOTP !== otp || admin.resetOTPExpiry < new Date()) {
+      return res.render('admin/reset-password', { error: 'Invalid or expired OTP.', email, otp });
+    }
+
+    admin.password = password;
+    admin.resetOTP = null;
+    admin.resetOTPExpiry = null;
+    await admin.save();
+
+    res.redirect('/admin/login?success=Password+reset+successfully!');
+  } catch (err) {
+    console.error(err);
+    res.render('admin/reset-password', { error: 'Failed to reset password.', email: req.body.email, otp: req.body.otp });
   }
 };

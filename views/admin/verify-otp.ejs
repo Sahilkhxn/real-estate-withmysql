@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Verify OTP | Webjinny</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:2rem;font-weight:800;margin-bottom:6px">
+        <span style="background:var(--blue);color:white;padding:4px 10px;border-radius:8px">Webjinny</span>
+      </div>
+      <h1>Enter OTP</h1>
+      <p>Check your email for the 6-digit OTP</p>
+    </div>
+
+    <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+
+    <form action="/admin/verify-otp" method="POST">
+      <input type="hidden" name="email" value="<%= email %>"/>
+      <div class="form-group">
+        <label class="form-label">6-Digit OTP</label>
+        <input type="text" name="otp" class="form-control" 
+               placeholder="123456" required maxlength="6"
+               style="background:white;letter-spacing:8px;font-size:1.4rem;text-align:center"/>
+      </div>
+      <button type="submit" class="btn btn-primary w-full mt-16" style="justify-content:center;padding:14px">
+        Verify OTP
+      </button>
+    </form>
+
+    <div style="text-align:center;margin-top:20px">
+      <a href="/admin/forgot-password" style="color:var(--text-light);font-size:0.85rem">← Resend OTP</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

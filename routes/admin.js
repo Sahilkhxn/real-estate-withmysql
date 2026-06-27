@@ -8,6 +8,13 @@ const upload = require('../middleware/upload');
 router.get('/login', adminController.loginPage);
 router.post('/login', adminController.login);
 router.get('/logout', adminController.logout);
+// Forgot password
+router.get('/forgot-password', adminController.forgotPasswordPage);
+router.post('/forgot-password', adminController.sendOTP);
+router.get('/verify-otp', adminController.verifyOTPPage);
+router.post('/verify-otp', adminController.verifyOTP);
+router.get('/reset-password', adminController.resetPasswordPage);
+router.post('/reset-password', adminController.resetPassword);
 
 // Protected routes
 router.get('/dashboard', auth, adminController.dashboard);
