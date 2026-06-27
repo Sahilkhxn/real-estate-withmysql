@@ -105,7 +105,8 @@ function buildPropertyData(body, files, existingPhotos) {
   const city         = String(body.city         || '').trim();
   const state        = String(body.state        || 'Rajasthan').trim();
   const pincode      = String(body.pincode      || '').trim();
-  const propArea     = body.propArea ? Number(body.propArea) : undefined;
+  // const propArea     = body.propArea ? Number(body.propArea) : undefined;
+  const propArea = body.propArea && body.propArea !== '' && !isNaN(Number(body.propArea)) ? Number(body.propArea) : undefined;
 
   // f.path = Cloudinary full URL (https://res.cloudinary.com/...)
   const newPhotos  = files ? files.map(f => f.path) : [];

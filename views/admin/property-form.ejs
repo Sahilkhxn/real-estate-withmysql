@@ -37,16 +37,15 @@
     <% } %>
 
     <div class="admin-topbar">
-      <h1 class="admin-page-title"><%= isEdit ? '  Edit Property' : '+ Add New Property' %></h1>
+      <h1 class="admin-page-title"><%= isEdit ? 'Edit Property' : '+ Add New Property' %></h1>
       <a href="/admin/properties" class="btn btn-outline btn-sm">← Back to List</a>
     </div>
 
-    <form action="<%= isEdit ? `/admin/properties/${property._id}?_method=PUT` : '/admin/properties' %>" 
-          method="POST" 
+    <form action="<%= isEdit ? `/admin/properties/${property._id}?_method=PUT` : '/admin/properties' %>"
+          method="POST"
           enctype="multipart/form-data"
           class="admin-form">
 
-      <!-- CSRF Protection -->
       <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"/>
 
       <!-- Basic Info -->
@@ -67,28 +66,28 @@
             <label class="form-label">Listing Type *</label>
             <select name="type" class="form-control" required>
               <option value="">Select type</option>
-              <option value="buy" <%= isEdit && property.type === 'buy' ? 'selected' : '' %>>Buy</option>
+              <option value="buy"  <%= isEdit && property.type === 'buy'  ? 'selected' : '' %>>Buy</option>
               <option value="rent" <%= isEdit && property.type === 'rent' ? 'selected' : '' %>>Rent</option>
               <option value="sell" <%= isEdit && property.type === 'sell' ? 'selected' : '' %>>Sell</option>
             </select>
           </div>
           <div class="form-group">
             <label class="form-label">Property Category</label>
-            <select name="propertyCategory" class="form-control">
-              <option value="apartment" <%= isEdit && property.propertyCategory === 'apartment' ? 'selected' : '' %>>Apartment</option>
-              <option value="house" <%= isEdit && property.propertyCategory === 'house' ? 'selected' : '' %>>House</option>
-              <option value="villa" <%= isEdit && property.propertyCategory === 'villa' ? 'selected' : '' %>>Villa</option>
-              <option value="plot" <%= isEdit && property.propertyCategory === 'plot' ? 'selected' : '' %>>Plot / Land</option>
+            <select name="propertyCategory" id="categorySelect" class="form-control" onchange="handleCategory()">
+              <option value="apartment"  <%= isEdit && property.propertyCategory === 'apartment'  ? 'selected' : '' %>>Apartment</option>
+              <option value="house"      <%= isEdit && property.propertyCategory === 'house'      ? 'selected' : '' %>>House</option>
+              <option value="villa"      <%= isEdit && property.propertyCategory === 'villa'      ? 'selected' : '' %>>Villa</option>
+              <option value="plot"       <%= isEdit && property.propertyCategory === 'plot'       ? 'selected' : '' %>>Plot / Land</option>
               <option value="commercial" <%= isEdit && property.propertyCategory === 'commercial' ? 'selected' : '' %>>Commercial</option>
-              <option value="pg" <%= isEdit && property.propertyCategory === 'pg' ? 'selected' : '' %>>PG / Hostel</option>
+              <option value="pg"         <%= isEdit && property.propertyCategory === 'pg'         ? 'selected' : '' %>>PG / Hostel</option>
             </select>
           </div>
           <div class="form-group">
             <label class="form-label">Status</label>
             <select name="status" class="form-control">
               <option value="available" <%= isEdit && property.status === 'available' ? 'selected' : '' %>>Available</option>
-              <option value="sold" <%= isEdit && property.status === 'sold' ? 'selected' : '' %>>Sold</option>
-              <option value="rented" <%= isEdit && property.status === 'rented' ? 'selected' : '' %>>Rented</option>
+              <option value="sold"      <%= isEdit && property.status === 'sold'      ? 'selected' : '' %>>Sold</option>
+              <option value="rented"    <%= isEdit && property.status === 'rented'    ? 'selected' : '' %>>Rented</option>
             </select>
           </div>
         </div>
@@ -96,7 +95,7 @@
         <div class="form-group">
           <label class="form-label">Description *</label>
           <textarea name="description" class="form-control" rows="5" required
-            placeholder="Describe the property in detail — location advantages, nearby landmarks, construction quality, amenities..."><%= isEdit ? property.description : '' %></textarea>
+            placeholder="Describe the property in detail..."><%= isEdit ? property.description : '' %></textarea>
         </div>
       </div>
 
@@ -113,9 +112,9 @@
           <div class="form-group">
             <label class="form-label">Price Type</label>
             <select name="priceType" class="form-control">
-              <option value="total" <%= isEdit && property.priceType === 'total' ? 'selected' : '' %>>Total Price</option>
+              <option value="total"     <%= isEdit && property.priceType === 'total'     ? 'selected' : '' %>>Total Price</option>
               <option value="per_month" <%= isEdit && property.priceType === 'per_month' ? 'selected' : '' %>>Per Month</option>
-              <option value="per_sqft" <%= isEdit && property.priceType === 'per_sqft' ? 'selected' : '' %>>Per Sq.ft</option>
+              <option value="per_sqft"  <%= isEdit && property.priceType === 'per_sqft'  ? 'selected' : '' %>>Per Sq.ft</option>
             </select>
           </div>
         </div>
@@ -126,23 +125,55 @@
         <div class="admin-card-header"><h2 class="admin-card-title">Location</h2></div>
         <div class="form-row">
           <div class="form-group">
+            <label class="form-label">State *</label>
+            <select name="state" id="stateSelect" class="form-control" required onchange="loadDistricts(this.value)">
+              <option value="">Select State</option>
+              <option value="Andhra Pradesh"    <%= isEdit && property.location.state === 'Andhra Pradesh'    ? 'selected' : '' %>>Andhra Pradesh</option>
+              <option value="Arunachal Pradesh" <%= isEdit && property.location.state === 'Arunachal Pradesh' ? 'selected' : '' %>>Arunachal Pradesh</option>
+              <option value="Assam"             <%= isEdit && property.location.state === 'Assam'             ? 'selected' : '' %>>Assam</option>
+              <option value="Bihar"             <%= isEdit && property.location.state === 'Bihar'             ? 'selected' : '' %>>Bihar</option>
+              <option value="Chhattisgarh"      <%= isEdit && property.location.state === 'Chhattisgarh'      ? 'selected' : '' %>>Chhattisgarh</option>
+              <option value="Goa"               <%= isEdit && property.location.state === 'Goa'               ? 'selected' : '' %>>Goa</option>
+              <option value="Gujarat"           <%= isEdit && property.location.state === 'Gujarat'           ? 'selected' : '' %>>Gujarat</option>
+              <option value="Haryana"           <%= isEdit && property.location.state === 'Haryana'           ? 'selected' : '' %>>Haryana</option>
+              <option value="Himachal Pradesh"  <%= isEdit && property.location.state === 'Himachal Pradesh'  ? 'selected' : '' %>>Himachal Pradesh</option>
+              <option value="Jharkhand"         <%= isEdit && property.location.state === 'Jharkhand'         ? 'selected' : '' %>>Jharkhand</option>
+              <option value="Karnataka"         <%= isEdit && property.location.state === 'Karnataka'         ? 'selected' : '' %>>Karnataka</option>
+              <option value="Kerala"            <%= isEdit && property.location.state === 'Kerala'            ? 'selected' : '' %>>Kerala</option>
+              <option value="Madhya Pradesh"    <%= isEdit && property.location.state === 'Madhya Pradesh'    ? 'selected' : '' %>>Madhya Pradesh</option>
+              <option value="Maharashtra"       <%= isEdit && property.location.state === 'Maharashtra'       ? 'selected' : '' %>>Maharashtra</option>
+              <option value="Manipur"           <%= isEdit && property.location.state === 'Manipur'           ? 'selected' : '' %>>Manipur</option>
+              <option value="Meghalaya"         <%= isEdit && property.location.state === 'Meghalaya'         ? 'selected' : '' %>>Meghalaya</option>
+              <option value="Mizoram"           <%= isEdit && property.location.state === 'Mizoram'           ? 'selected' : '' %>>Mizoram</option>
+              <option value="Nagaland"          <%= isEdit && property.location.state === 'Nagaland'          ? 'selected' : '' %>>Nagaland</option>
+              <option value="Odisha"            <%= isEdit && property.location.state === 'Odisha'            ? 'selected' : '' %>>Odisha</option>
+              <option value="Punjab"            <%= isEdit && property.location.state === 'Punjab'            ? 'selected' : '' %>>Punjab</option>
+              <option value="Rajasthan"         <%= isEdit && property.location.state === 'Rajasthan'         ? 'selected' : '' %>>Rajasthan</option>
+              <option value="Sikkim"            <%= isEdit && property.location.state === 'Sikkim'            ? 'selected' : '' %>>Sikkim</option>
+              <option value="Tamil Nadu"        <%= isEdit && property.location.state === 'Tamil Nadu'        ? 'selected' : '' %>>Tamil Nadu</option>
+              <option value="Telangana"         <%= isEdit && property.location.state === 'Telangana'         ? 'selected' : '' %>>Telangana</option>
+              <option value="Tripura"           <%= isEdit && property.location.state === 'Tripura'           ? 'selected' : '' %>>Tripura</option>
+              <option value="Uttar Pradesh"     <%= isEdit && property.location.state === 'Uttar Pradesh'     ? 'selected' : '' %>>Uttar Pradesh</option>
+              <option value="Uttarakhand"       <%= isEdit && property.location.state === 'Uttarakhand'       ? 'selected' : '' %>>Uttarakhand</option>
+              <option value="West Bengal"       <%= isEdit && property.location.state === 'West Bengal'       ? 'selected' : '' %>>West Bengal</option>
+              <option value="Delhi"             <%= isEdit && property.location.state === 'Delhi'             ? 'selected' : '' %>>Delhi</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">District *</label>
+            <select name="city" id="districtSelect" class="form-control" required>
+              <option value="">Select State First</option>
+            </select>
+          </div>
+
+          <div class="form-group">
             <label class="form-label">Area / Locality *</label>
             <input type="text" name="locationArea" class="form-control" required
                    placeholder="e.g. Malviya Nagar, Vaishali Nagar"
                    value="<%= property.location && property.location.area ? property.location.area : '' %>"/>
           </div>
-          <div class="form-group">
-            <label class="form-label">City *</label>
-            <input type="text" name="city" class="form-control" required
-                   placeholder="e.g. Jaipur"
-                   value="<%= property.location && property.location.city ? property.location.city : 'Jaipur' %>"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">State</label>
-            <input type="text" name="state" class="form-control"
-                   placeholder="Rajasthan"
-                   value="<%= property.location && property.location.state ? property.location.state : 'Rajasthan' %>"/>
-          </div>
+
           <div class="form-group">
             <label class="form-label">Pincode</label>
             <input type="text" name="pincode" class="form-control"
@@ -155,25 +186,40 @@
       <!-- Property Specs -->
       <div class="admin-card">
         <div class="admin-card-header"><h2 class="admin-card-title">Property Specs</h2></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Bedrooms</label>
-            <input type="number" name="bedrooms" class="form-control" min="0"
-                   placeholder="0" value="<%= isEdit ? property.bedrooms : 0 %>"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Bathrooms</label>
-            <input type="number" name="bathrooms" class="form-control" min="0"
-                   placeholder="0" value="<%= isEdit ? property.bathrooms : 0 %>"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Area (Sq. Ft)</label>
-            <input type="number" name="propArea" class="form-control" min="0"
-                   placeholder="1200" value="<%= property.area || '' %>"/>
+
+        <!-- Bedroom/Bathroom — only for apartment, house, villa, pg -->
+        <div id="bedroomSection" style="display:none">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Bedrooms</label>
+              <input type="number" name="bedrooms" class="form-control" min="0"
+                     placeholder="0" value="<%= isEdit ? property.bedrooms : 0 %>"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bathrooms</label>
+              <input type="number" name="bathrooms" class="form-control" min="0"
+                     placeholder="0" value="<%= isEdit ? property.bathrooms : 0 %>"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Area (Sq. Ft)</label>
+              <input type="number" name="propArea" class="form-control" min="0"
+                     placeholder="1200" value="<%= property.area || '' %>"/>
+            </div>
           </div>
         </div>
 
-        <div class="form-group">
+        <!-- Area only — for plot, commercial -->
+        <div id="areaOnlySection" style="display:none">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Area (Sq. Ft)</label>
+              <input type="number" name="propArea" class="form-control" min="0"
+                     placeholder="1200" value="<%= property.area || '' %>"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:14px">
           <label class="form-label">Amenities (comma separated)</label>
           <input type="text" name="amenities" class="form-control"
                  placeholder="Parking, Lift, 24/7 Water, Power Backup, Security, Garden, Gym"
@@ -184,7 +230,7 @@
           <input type="checkbox" name="featured" id="featured" value="true"
                  <%= isEdit && property.featured ? 'checked' : '' %>
                  style="width:18px;height:18px;cursor:pointer"/>
-          <label for="featured" style="cursor:pointer;font-weight:600;font-size:0.9rem">Mark as Featured (shown on homepage)</label>
+          <label for="featured" style="cursor:pointer;font-weight:600;font-size:0.9rem">⭐ Mark as Featured (shown on homepage)</label>
         </div>
       </div>
 
@@ -211,20 +257,18 @@
       <div class="admin-card">
         <div class="admin-card-header"><h2 class="admin-card-title">Photos</h2></div>
 
-        <!-- Existing photos (edit mode) -->
         <% if (isEdit && property.photos && property.photos.length > 0) { %>
         <div style="margin-bottom:20px">
           <label class="form-label">Current Photos</label>
           <div class="photo-preview-grid">
             <% property.photos.forEach((photo, i) => { %>
             <div class="photo-preview-item" id="existing-<%= i %>">
-              <img src="/uploads/<%= photo %>" alt="Photo <%= i+1 %>"/>
+              <img src="<%= photo %>" alt="Photo <%= i+1 %>"/>
               <button type="button" class="remove-photo"
                       onclick="removeExistingPhoto('<%= photo %>', this.parentElement)">×</button>
             </div>
             <% }) %>
           </div>
-          <!-- Hidden inputs for existing photos to keep -->
           <div id="existingPhotosInputs">
             <% property.photos.forEach(photo => { %>
             <input type="hidden" name="existingPhotos[]" value="<%= photo %>" class="existing-photo-input"/>
@@ -242,11 +286,10 @@
           <p>Click to upload or drag & drop photos</p>
           <small>JPEG, PNG, WebP · Max 5MB each · Up to 10 photos</small>
         </div>
-        <input type="file" id="photoInput" name="photos" 
+        <input type="file" id="photoInput" name="photos"
                accept="image/jpeg,image/jpg,image/png,image/webp"
-               multiple style="display:none" 
+               multiple style="display:none"
                onchange="previewPhotos(this)"/>
-
         <div class="photo-preview-grid" id="newPhotoPreview"></div>
       </div>
 
@@ -254,7 +297,7 @@
       <div style="display:flex;gap:12px;justify-content:flex-end;margin-bottom:32px">
         <a href="/admin/properties" class="btn btn-outline btn-lg">Cancel</a>
         <button type="submit" class="btn btn-primary btn-lg">
-          <%= isEdit ? ' Save Changes' : ' Publish Property' %>
+          <%= isEdit ? 'Save Changes' : 'Publish Property' %>
         </button>
       </div>
     </form>
@@ -263,15 +306,76 @@
 
 <script src="/js/main.js"></script>
 <script>
-// Drag & drop upload area
+const districts = {
+  "Rajasthan": ["Ajmer","Alwar","Banswara","Baran","Barmer","Bharatpur","Bhilwara","Bikaner","Bundi","Chittorgarh","Churu","Dausa","Dholpur","Dungarpur","Hanumangarh","Jaipur","Jaisalmer","Jalore","Jhalawar","Jhunjhunu","Jodhpur","Karauli","Kota","Nagaur","Pali","Pratapgarh","Rajsamand","Sawai Madhopur","Sikar","Sirohi","Sri Ganganagar","Tonk","Udaipur"],
+  "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad","Solapur","Kolhapur","Thane","Raigad","Satara","Sangli","Ahmednagar","Jalgaon","Amravati","Nanded","Latur","Osmanabad","Buldhana","Akola","Washim","Yavatmal","Wardha","Bhandara","Gondia","Chandrapur","Gadchiroli","Sindhudurg","Ratnagiri","Dhule","Nandurbar","Jalna","Parbhani","Hingoli","Bid"],
+  "Uttar Pradesh": ["Agra","Aligarh","Allahabad","Ambedkar Nagar","Amethi","Amroha","Auraiya","Azamgarh","Baghpat","Bahraich","Ballia","Balrampur","Banda","Barabanki","Bareilly","Basti","Bijnor","Budaun","Bulandshahr","Chandauli","Chitrakoot","Deoria","Etah","Etawah","Faizabad","Farrukhabad","Fatehpur","Firozabad","Gautam Buddha Nagar","Ghaziabad","Ghazipur","Gonda","Gorakhpur","Hamirpur","Hapur","Hardoi","Hathras","Jalaun","Jaunpur","Jhansi","Kannauj","Kanpur","Kasganj","Kaushambi","Kheri","Kushinagar","Lalitpur","Lucknow","Maharajganj","Mahoba","Mainpuri","Mathura","Mau","Meerut","Mirzapur","Moradabad","Muzaffarnagar","Pilibhit","Pratapgarh","Raebareli","Rampur","Saharanpur","Sambhal","Sant Kabir Nagar","Shahjahanpur","Shamli","Shravasti","Siddharthnagar","Sitapur","Sonbhadra","Sultanpur","Unnao","Varanasi"],
+  "Gujarat": ["Ahmedabad","Amreli","Anand","Aravalli","Banaskantha","Bharuch","Bhavnagar","Botad","Chhota Udaipur","Dahod","Dang","Devbhumi Dwarka","Gandhinagar","Gir Somnath","Jamnagar","Junagadh","Kheda","Kutch","Mahisagar","Mehsana","Morbi","Narmada","Navsari","Panchmahal","Patan","Porbandar","Rajkot","Sabarkantha","Surat","Surendranagar","Tapi","Vadodara","Valsad"],
+  "Karnataka": ["Bagalkot","Ballari","Belagavi","Bengaluru Rural","Bengaluru Urban","Bidar","Chamarajanagar","Chikballapur","Chikkamagaluru","Chitradurga","Dakshina Kannada","Davanagere","Dharwad","Gadag","Hassan","Haveri","Kalaburagi","Kodagu","Kolar","Koppal","Mandya","Mysuru","Raichur","Ramanagara","Shivamogga","Tumakuru","Udupi","Uttara Kannada","Vijayapura","Yadgir"],
+  "Tamil Nadu": ["Ariyalur","Chengalpattu","Chennai","Coimbatore","Cuddalore","Dharmapuri","Dindigul","Erode","Kallakurichi","Kancheepuram","Kanyakumari","Karur","Krishnagiri","Madurai","Nagapattinam","Namakkal","Nilgiris","Perambalur","Pudukkottai","Ramanathapuram","Ranipet","Salem","Sivaganga","Tenkasi","Thanjavur","Theni","Thoothukudi","Tiruchirappalli","Tirunelveli","Tirupathur","Tiruppur","Tiruvallur","Tiruvannamalai","Tiruvarur","Vellore","Viluppuram","Virudhunagar"],
+  "West Bengal": ["Alipurduar","Bankura","Birbhum","Cooch Behar","Dakshin Dinajpur","Darjeeling","Hooghly","Howrah","Jalpaiguri","Jhargram","Kalimpong","Kolkata","Malda","Murshidabad","Nadia","North 24 Parganas","Paschim Bardhaman","Paschim Medinipur","Purba Bardhaman","Purba Medinipur","Purulia","South 24 Parganas","Uttar Dinajpur"],
+  "Madhya Pradesh": ["Agar Malwa","Alirajpur","Anuppur","Ashoknagar","Balaghat","Barwani","Betul","Bhind","Bhopal","Burhanpur","Chhatarpur","Chhindwara","Damoh","Datia","Dewas","Dhar","Dindori","Guna","Gwalior","Harda","Hoshangabad","Indore","Jabalpur","Jhabua","Katni","Khandwa","Khargone","Mandla","Mandsaur","Morena","Narsinghpur","Neemuch","Niwari","Panna","Raisen","Rajgarh","Ratlam","Rewa","Sagar","Satna","Sehore","Seoni","Shahdol","Shajapur","Sheopur","Shivpuri","Sidhi","Singrauli","Tikamgarh","Ujjain","Umaria","Vidisha"],
+  "Bihar": ["Araria","Arwal","Aurangabad","Banka","Begusarai","Bhagalpur","Bhojpur","Buxar","Darbhanga","East Champaran","Gaya","Gopalganj","Jamui","Jehanabad","Kaimur","Katihar","Khagaria","Kishanganj","Lakhisarai","Madhepura","Madhubani","Munger","Muzaffarpur","Nalanda","Nawada","Patna","Purnia","Rohtas","Saharsa","Samastipur","Saran","Sheikhpura","Sheohar","Sitamarhi","Siwan","Supaul","Vaishali","West Champaran"],
+  "Delhi": ["Central Delhi","East Delhi","New Delhi","North Delhi","North East Delhi","North West Delhi","Shahdara","South Delhi","South East Delhi","South West Delhi","West Delhi"],
+  "Punjab": ["Amritsar","Barnala","Bathinda","Faridkot","Fatehgarh Sahib","Fazilka","Ferozepur","Gurdaspur","Hoshiarpur","Jalandhar","Kapurthala","Ludhiana","Mansa","Moga","Mohali","Muktsar","Pathankot","Patiala","Rupnagar","Sangrur","Shaheed Bhagat Singh Nagar","Tarn Taran"],
+  "Haryana": ["Ambala","Bhiwani","Charkhi Dadri","Faridabad","Fatehabad","Gurugram","Hisar","Jhajjar","Jind","Kaithal","Karnal","Kurukshetra","Mahendragarh","Nuh","Palwal","Panchkula","Panipat","Rewari","Rohtak","Sirsa","Sonipat","Yamunanagar"],
+  "Andhra Pradesh": ["Alluri Sitharama Raju","Anakapalli","Anantapur","Annamayya","Bapatla","Chittoor","East Godavari","Eluru","Guntur","Kakinada","Krishna","Kurnool","Nandyal","Nellore","Palnadu","Prakasam","Srikakulam","Tirupati","Visakhapatnam","Vizianagaram","West Godavari","YSR Kadapa"],
+  "Telangana": ["Adilabad","Bhadradri Kothagudem","Hanmakonda","Hyderabad","Jagtial","Jangaon","Kamareddy","Karimnagar","Khammam","Lohardaga","Mahabubabad","Mahabubnagar","Mancherial","Medak","Medchal Malkajgiri","Nagarkurnool","Nalgonda","Narayanpet","Nirmal","Nizamabad","Peddapalli","Rajanna Sircilla","Rangareddy","Sangareddy","Siddipet","Suryapet","Vikarabad","Wanaparthy","Warangal","Yadadri Bhuvanagiri"],
+  "Kerala": ["Alappuzha","Ernakulam","Idukki","Kannur","Kasaragod","Kollam","Kottayam","Kozhikode","Malappuram","Palakkad","Pathanamthitta","Thiruvananthapuram","Thrissur","Wayanad"],
+  "Odisha": ["Angul","Balangir","Balasore","Bargarh","Bhadrak","Boudh","Cuttack","Deogarh","Dhenkanal","Gajapati","Ganjam","Jagatsinghpur","Jajpur","Jharsuguda","Kalahandi","Kandhamal","Kendrapara","Kendujhar","Khordha","Koraput","Malkangiri","Mayurbhanj","Nabarangpur","Nayagarh","Nuapada","Puri","Rayagada","Sambalpur","Sonepur","Sundargarh"],
+  "Assam": ["Bajali","Baksa","Barpeta","Biswanath","Bongaigaon","Cachar","Charaideo","Chirang","Darrang","Dhemaji","Dhubri","Dibrugarh","Dima Hasao","Goalpara","Golaghat","Hailakandi","Hojai","Jorhat","Kamrup","Kamrup Metropolitan","Karbi Anglong","Karimganj","Kokrajhar","Lakhimpur","Majuli","Morigaon","Nagaon","Nalbari","Sivasagar","Sonitpur","Tinsukia","Udalguri"],
+  "Jharkhand": ["Bokaro","Chatra","Deoghar","Dhanbad","Dumka","East Singhbhum","Garhwa","Giridih","Godda","Gumla","Hazaribagh","Jamtara","Khunti","Koderma","Latehar","Lohardaga","Pakur","Palamu","Ramgarh","Ranchi","Sahebganj","Seraikela Kharsawan","Simdega","West Singhbhum"],
+  "Uttarakhand": ["Almora","Bageshwar","Chamoli","Champawat","Dehradun","Haridwar","Nainital","Pauri Garhwal","Pithoragarh","Rudraprayag","Tehri Garhwal","Udham Singh Nagar","Uttarkashi"],
+  "Himachal Pradesh": ["Bilaspur","Chamba","Hamirpur","Kangra","Kinnaur","Kullu","Lahaul and Spiti","Mandi","Shimla","Sirmaur","Solan","Una"],
+  "Chhattisgarh": ["Balod","Baloda Bazar","Balrampur","Bastar","Bemetara","Bijapur","Bilaspur","Dantewada","Dhamtari","Durg","Gariaband","Janjgir-Champa","Jashpur","Kabirdham","Kanker","Kondagaon","Korba","Koriya","Mahasamund","Mungeli","Narayanpur","Raigarh","Raipur","Rajnandgaon","Sukma","Surajpur","Surguja"],
+  "Goa": ["North Goa","South Goa"],
+  "Manipur": ["Bishnupur","Chandel","Churachandpur","Imphal East","Imphal West","Jiribam","Kakching","Kamjong","Kangpokpi","Noney","Pherzawl","Senapati","Tamenglong","Tengnoupal","Thoubal","Ukhrul"],
+  "Meghalaya": ["East Garo Hills","East Jaintia Hills","East Khasi Hills","North Garo Hills","Ri Bhoi","South Garo Hills","West Garo Hills","West Jaintia Hills","West Khasi Hills"],
+  "Tripura": ["Dhalai","Gomati","Khowai","North Tripura","Sepahijala","South Tripura","Unakoti","West Tripura"],
+  "Arunachal Pradesh": ["Anjaw","Changlang","Dibang Valley","East Kameng","East Siang","Kamle","Kra Daadi","Kurung Kumey","Lohit","Longding","Lower Dibang Valley","Lower Siang","Lower Subansiri","Namsai","Papum Pare","Tawang","Tirap","Upper Siang","Upper Subansiri","West Kameng","West Siang"],
+  "Nagaland": ["Dimapur","Kiphire","Kohima","Longleng","Mokokchung","Mon","Peren","Phek","Tuensang","Wokha","Zunheboto"],
+  "Mizoram": ["Aizawl","Champhai","Kolasib","Lawngtlai","Lunglei","Mamit","Serchhip","Siaha"],
+  "Sikkim": ["East Sikkim","North Sikkim","South Sikkim","West Sikkim"]
+};
+
+function loadDistricts(state) {
+  const select = document.getElementById('districtSelect');
+  const currentCity = '<%= isEdit ? property.location.city : "" %>';
+  select.innerHTML = '<option value="">Select District</option>';
+  if (districts[state]) {
+    districts[state].forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.text = d;
+      if (currentCity === d) opt.selected = true;
+      select.appendChild(opt);
+    });
+  }
+}
+
+function handleCategory() {
+  const cat = document.getElementById('categorySelect').value;
+  const showBedroom = ['apartment','house','villa','pg'].includes(cat);
+  document.getElementById('bedroomSection').style.display = showBedroom ? 'block' : 'none';
+  document.getElementById('areaOnlySection').style.display = showBedroom ? 'none' : 'block';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  handleCategory();
+  <% if (isEdit && property.location && property.location.state) { %>
+  loadDistricts('<%= property.location.state %>');
+  <% } %>
+});
+
+// Drag & drop
 const dropArea = document.getElementById('dropArea');
-['dragenter', 'dragover'].forEach(e => {
-  dropArea.addEventListener(e, (ev) => { ev.preventDefault(); dropArea.classList.add('dragging'); });
+['dragenter','dragover'].forEach(e => {
+  dropArea.addEventListener(e, ev => { ev.preventDefault(); dropArea.classList.add('dragging'); });
 });
-['dragleave', 'drop'].forEach(e => {
-  dropArea.addEventListener(e, (ev) => { ev.preventDefault(); dropArea.classList.remove('dragging'); });
+['dragleave','drop'].forEach(e => {
+  dropArea.addEventListener(e, ev => { ev.preventDefault(); dropArea.classList.remove('dragging'); });
 });
-dropArea.addEventListener('drop', (ev) => {
+dropArea.addEventListener('drop', ev => {
   const files = ev.dataTransfer.files;
   const input = document.getElementById('photoInput');
   const dt = new DataTransfer();
@@ -285,10 +389,10 @@ function previewPhotos(input) {
   container.innerHTML = '';
   Array.from(input.files).slice(0, 10).forEach((file, i) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       const div = document.createElement('div');
       div.className = 'photo-preview-item';
-      div.innerHTML = `<img src="${e.target.result}" alt="New photo ${i+1}"/>`;
+      div.innerHTML = `<img src="${e.target.result}" alt="Photo ${i+1}"/>`;
       container.appendChild(div);
     };
     reader.readAsDataURL(file);
@@ -297,9 +401,7 @@ function previewPhotos(input) {
 
 function removeExistingPhoto(filename, container) {
   container.remove();
-  // Remove the hidden input
-  const inputs = document.querySelectorAll('.existing-photo-input');
-  inputs.forEach(inp => {
+  document.querySelectorAll('.existing-photo-input').forEach(inp => {
     if (inp.value === filename) inp.remove();
   });
 }
