@@ -43,9 +43,16 @@ const propertySchema = new mongoose.Schema({
   whatsappNumber: { type: String },
   status: {
     type: String,
-    enum: ['available', 'sold', 'rented'],
+      enum: ['available', 'sold', 'rented', 'pending'],
+
     default: 'available'
   },
+
+  submittedBy: {
+  name: { type: String },
+  phone: { type: String }
+},
+isUserSubmitted: { type: Boolean, default: false },
   featured: { type: Boolean, default: false },
   amenities: [{ type: String }],
   createdAt: { type: Date, default: Date.now },

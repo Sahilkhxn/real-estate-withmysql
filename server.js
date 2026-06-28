@@ -4,13 +4,11 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const methodOverride = require('method-override');
+const csrf = require('csurf');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const csrf = require('csurf');
-
-
 
 // ─── Database ───────────────────────────────────────────────────
 if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is missing!');
@@ -36,6 +34,7 @@ app.use(session({
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
 
+
 // ─── Routes ───────────────────────────────────────────────────────
 app.use('/', require('./routes/public'));
 app.use('/admin', require('./routes/admin'));
@@ -47,6 +46,9 @@ app.use((req, res) => {
 
 // ─── Error Handler ────────────────────────────────────────────────
 app.use((err, req, res, next) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    return res.status(403).render('error', { message: 'Invalid form submission. Please try again.' });
+  }
   console.error(err.stack);
   res.status(500).render('error', { message: 'Internal server error.' });
 });
@@ -55,11 +57,4 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`\n Webjinny running at http://localhost:${PORT}`);
   console.log(`   Admin panel: http://localhost:${PORT}/admin/login\n`);
-});
-
-
-app.use(csrf({ cookie: false }));
-app.use((req, res, next) => {
-  res.locals.csrfToken = req.csrfToken();
-  next();
 });

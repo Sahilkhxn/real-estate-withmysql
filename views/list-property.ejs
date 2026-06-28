@@ -1,0 +1,308 @@
+<%- include('partials/header', { title: 'List Your Property' }) %>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Home</a>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+    <span>List Your Property</span>
+  </div>
+
+  <div class="page-section" style="max-width:800px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:32px">
+      <h1 style="font-size:1.8rem;font-weight:900;letter-spacing:-0.5px;margin-bottom:8px">List Your Property</h1>
+      <p style="color:var(--text-light);font-size:0.95rem">Fill in the details below. Our team will review and publish your listing within 24 hours.</p>
+    </div>
+
+    <% if (error) { %>
+    <div class="flash flash-error"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+    <div class="flash flash-success" style="font-size:1rem;padding:16px"><%= success %></div>
+    <% } %>
+
+    <% if (!success) { %>
+    <form action="/list-property" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"/>
+
+
+      <!-- Your Details -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Your Details</h2></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Your Name *</label>
+            <input type="text" name="name" class="form-control" required placeholder="Full name"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Your Phone *</label>
+            <input type="tel" name="phone" class="form-control" required placeholder="+91 98765 43210"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Property Info -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Property Details</h2></div>
+
+        <div class="form-group">
+          <label class="form-label">Property Title *</label>
+          <input type="text" name="title" class="form-control" required placeholder="e.g. 3 BHK Apartment in Malviya Nagar"/>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Listing Type *</label>
+            <select name="type" class="form-control" required>
+              <option value="">Select type</option>
+              <option value="buy">Buy</option>
+              <option value="rent">Rent</option>
+              <option value="sell">Sell</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Property Category</label>
+            <select name="propertyCategory" id="categorySelect" class="form-control" onchange="handleCategory()">
+              <option value="apartment">Apartment</option>
+              <option value="house">House</option>
+              <option value="villa">Villa</option>
+              <option value="plot">Plot / Land</option>
+              <option value="commercial">Commercial</option>
+              <option value="pg">PG / Hostel</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-control" rows="4" placeholder="Describe your property..."></textarea>
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Price</h2></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Price (₹) *</label>
+            <input type="number" name="price" class="form-control" required placeholder="e.g. 4500000" min="0"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price Type</label>
+            <select name="priceType" class="form-control">
+              <option value="total">Total Price</option>
+              <option value="per_month">Per Month</option>
+              <option value="per_sqft">Per Sq.ft</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Location</h2></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">State *</label>
+            <select name="state" id="stateSelect" class="form-control" required onchange="loadDistricts(this.value)">
+              <option value="">Select State</option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+              <option value="Assam">Assam</option>
+              <option value="Bihar">Bihar</option>
+              <option value="Chhattisgarh">Chhattisgarh</option>
+              <option value="Goa">Goa</option>
+              <option value="Gujarat">Gujarat</option>
+              <option value="Haryana">Haryana</option>
+              <option value="Himachal Pradesh">Himachal Pradesh</option>
+              <option value="Jharkhand">Jharkhand</option>
+              <option value="Karnataka">Karnataka</option>
+              <option value="Kerala">Kerala</option>
+              <option value="Madhya Pradesh">Madhya Pradesh</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Manipur">Manipur</option>
+              <option value="Meghalaya">Meghalaya</option>
+              <option value="Mizoram">Mizoram</option>
+              <option value="Nagaland">Nagaland</option>
+              <option value="Odisha">Odisha</option>
+              <option value="Punjab">Punjab</option>
+              <option value="Rajasthan">Rajasthan</option>
+              <option value="Sikkim">Sikkim</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+              <option value="Telangana">Telangana</option>
+              <option value="Tripura">Tripura</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="Uttarakhand">Uttarakhand</option>
+              <option value="West Bengal">West Bengal</option>
+              <option value="Delhi">Delhi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">District *</label>
+            <select name="city" id="districtSelect" class="form-control" required>
+              <option value="">Select State First</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Area / Locality *</label>
+            <input type="text" name="locationArea" class="form-control" required placeholder="e.g. Malviya Nagar"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pincode</label>
+            <input type="text" name="pincode" class="form-control" placeholder="302001"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Specs -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Property Specs</h2></div>
+
+        <div id="bedroomSection">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Bedrooms</label>
+              <input type="number" name="bedrooms" class="form-control" min="0" placeholder="0" value="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bathrooms</label>
+              <input type="number" name="bathrooms" class="form-control" min="0" placeholder="0" value="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Area (Sq. Ft)</label>
+              <input type="number" name="propArea" class="form-control" min="0" placeholder="1200"/>
+            </div>
+          </div>
+        </div>
+
+        <div id="areaOnlySection" style="display:none">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Area (Sq. Ft)</label>
+              <input type="number" name="propArea" class="form-control" min="0" placeholder="1200"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:14px">
+          <label class="form-label">Amenities (comma separated)</label>
+          <input type="text" name="amenities" class="form-control" placeholder="Parking, Lift, 24/7 Water, Power Backup"/>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Contact Details</h2></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Contact Number *</label>
+            <input type="tel" name="contactNumber" class="form-control" required placeholder="+91 98765 43210"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp Number</label>
+            <input type="tel" name="whatsappNumber" class="form-control" placeholder="+91 98765 43210"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <div class="admin-card">
+        <div class="admin-card-header"><h2 class="admin-card-title">Photos</h2></div>
+        <div class="photo-upload-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p>Click to upload or drag & drop photos</p>
+          <small>JPEG, PNG, WebP · Max 5MB each · Up to 10 photos</small>
+        </div>
+        <input type="file" id="photoInput" name="photos" accept="image/jpeg,image/jpg,image/png,image/webp" multiple style="display:none" onchange="previewPhotos(this)"/>
+        <div class="photo-preview-grid" id="newPhotoPreview"></div>
+      </div>
+
+      <!-- Submit -->
+      <div style="text-align:center;margin-bottom:32px">
+        <button type="submit" class="btn btn-primary btn-lg" style="padding:14px 48px;font-size:1rem">
+          Submit Property
+        </button>
+        <p style="margin-top:12px;font-size:0.82rem;color:var(--text-light)">Our team will review your listing within 24 hours.</p>
+      </div>
+    </form>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+const districts = {
+  "Rajasthan": ["Ajmer","Alwar","Banswara","Baran","Barmer","Bharatpur","Bhilwara","Bikaner","Bundi","Chittorgarh","Churu","Dausa","Dholpur","Dungarpur","Hanumangarh","Jaipur","Jaisalmer","Jalore","Jhalawar","Jhunjhunu","Jodhpur","Karauli","Kota","Nagaur","Pali","Pratapgarh","Rajsamand","Sawai Madhopur","Sikar","Sirohi","Sri Ganganagar","Tonk","Udaipur"],
+  "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad","Solapur","Kolhapur","Thane","Raigad","Satara","Sangli","Ahmednagar","Jalgaon","Amravati","Nanded","Latur","Osmanabad","Buldhana","Akola","Washim","Yavatmal","Wardha","Bhandara","Gondia","Chandrapur","Gadchiroli","Sindhudurg","Ratnagiri","Dhule","Nandurbar","Jalna","Parbhani","Hingoli","Bid"],
+  "Uttar Pradesh": ["Agra","Aligarh","Allahabad","Ambedkar Nagar","Amethi","Amroha","Auraiya","Azamgarh","Baghpat","Bahraich","Ballia","Balrampur","Banda","Barabanki","Bareilly","Basti","Bijnor","Budaun","Bulandshahr","Chandauli","Chitrakoot","Deoria","Etah","Etawah","Faizabad","Farrukhabad","Fatehpur","Firozabad","Gautam Buddha Nagar","Ghaziabad","Ghazipur","Gonda","Gorakhpur","Hamirpur","Hapur","Hardoi","Hathras","Jalaun","Jaunpur","Jhansi","Kannauj","Kanpur","Kasganj","Kaushambi","Kheri","Kushinagar","Lalitpur","Lucknow","Maharajganj","Mahoba","Mainpuri","Mathura","Mau","Meerut","Mirzapur","Moradabad","Muzaffarnagar","Pilibhit","Pratapgarh","Raebareli","Rampur","Saharanpur","Sambhal","Sant Kabir Nagar","Shahjahanpur","Shamli","Shravasti","Siddharthnagar","Sitapur","Sonbhadra","Sultanpur","Unnao","Varanasi"],
+  "Gujarat": ["Ahmedabad","Amreli","Anand","Aravalli","Banaskantha","Bharuch","Bhavnagar","Botad","Chhota Udaipur","Dahod","Dang","Devbhumi Dwarka","Gandhinagar","Gir Somnath","Jamnagar","Junagadh","Kheda","Kutch","Mahisagar","Mehsana","Morbi","Narmada","Navsari","Panchmahal","Patan","Porbandar","Rajkot","Sabarkantha","Surat","Surendranagar","Tapi","Vadodara","Valsad"],
+  "Karnataka": ["Bagalkot","Ballari","Belagavi","Bengaluru Rural","Bengaluru Urban","Bidar","Chamarajanagar","Chikballapur","Chikkamagaluru","Chitradurga","Dakshina Kannada","Davanagere","Dharwad","Gadag","Hassan","Haveri","Kalaburagi","Kodagu","Kolar","Koppal","Mandya","Mysuru","Raichur","Ramanagara","Shivamogga","Tumakuru","Udupi","Uttara Kannada","Vijayapura","Yadgir"],
+  "Tamil Nadu": ["Ariyalur","Chengalpattu","Chennai","Coimbatore","Cuddalore","Dharmapuri","Dindigul","Erode","Kallakurichi","Kancheepuram","Kanyakumari","Karur","Krishnagiri","Madurai","Nagapattinam","Namakkal","Nilgiris","Perambalur","Pudukkottai","Ramanathapuram","Ranipet","Salem","Sivaganga","Tenkasi","Thanjavur","Theni","Thoothukudi","Tiruchirappalli","Tirunelveli","Tirupathur","Tiruppur","Tiruvallur","Tiruvannamalai","Tiruvarur","Vellore","Viluppuram","Virudhunagar"],
+  "West Bengal": ["Alipurduar","Bankura","Birbhum","Cooch Behar","Dakshin Dinajpur","Darjeeling","Hooghly","Howrah","Jalpaiguri","Jhargram","Kalimpong","Kolkata","Malda","Murshidabad","Nadia","North 24 Parganas","Paschim Bardhaman","Paschim Medinipur","Purba Bardhaman","Purba Medinipur","Purulia","South 24 Parganas","Uttar Dinajpur"],
+  "Madhya Pradesh": ["Agar Malwa","Alirajpur","Anuppur","Ashoknagar","Balaghat","Barwani","Betul","Bhind","Bhopal","Burhanpur","Chhatarpur","Chhindwara","Damoh","Datia","Dewas","Dhar","Dindori","Guna","Gwalior","Harda","Hoshangabad","Indore","Jabalpur","Jhabua","Katni","Khandwa","Khargone","Mandla","Mandsaur","Morena","Narsinghpur","Neemuch","Niwari","Panna","Raisen","Rajgarh","Ratlam","Rewa","Sagar","Satna","Sehore","Seoni","Shahdol","Shajapur","Sheopur","Shivpuri","Sidhi","Singrauli","Tikamgarh","Ujjain","Umaria","Vidisha"],
+  "Bihar": ["Araria","Arwal","Aurangabad","Banka","Begusarai","Bhagalpur","Bhojpur","Buxar","Darbhanga","East Champaran","Gaya","Gopalganj","Jamui","Jehanabad","Kaimur","Katihar","Khagaria","Kishanganj","Lakhisarai","Madhepura","Madhubani","Munger","Muzaffarpur","Nalanda","Nawada","Patna","Purnia","Rohtas","Saharsa","Samastipur","Saran","Sheikhpura","Sheohar","Sitamarhi","Siwan","Supaul","Vaishali","West Champaran"],
+  "Delhi": ["Central Delhi","East Delhi","New Delhi","North Delhi","North East Delhi","North West Delhi","Shahdara","South Delhi","South East Delhi","South West Delhi","West Delhi"],
+  "Punjab": ["Amritsar","Barnala","Bathinda","Faridkot","Fatehgarh Sahib","Fazilka","Ferozepur","Gurdaspur","Hoshiarpur","Jalandhar","Kapurthala","Ludhiana","Mansa","Moga","Mohali","Muktsar","Pathankot","Patiala","Rupnagar","Sangrur","Shaheed Bhagat Singh Nagar","Tarn Taran"],
+  "Haryana": ["Ambala","Bhiwani","Charkhi Dadri","Faridabad","Fatehabad","Gurugram","Hisar","Jhajjar","Jind","Kaithal","Karnal","Kurukshetra","Mahendragarh","Nuh","Palwal","Panchkula","Panipat","Rewari","Rohtak","Sirsa","Sonipat","Yamunanagar"],
+  "Andhra Pradesh": ["Anantapur","Chittoor","East Godavari","Guntur","Krishna","Kurnool","Nellore","Prakasam","Srikakulam","Tirupati","Visakhapatnam","Vizianagaram","West Godavari","YSR Kadapa"],
+  "Telangana": ["Hyderabad","Karimnagar","Khammam","Mahabubnagar","Medak","Nalgonda","Nizamabad","Rangareddy","Sangareddy","Warangal"],
+  "Kerala": ["Alappuzha","Ernakulam","Idukki","Kannur","Kasaragod","Kollam","Kottayam","Kozhikode","Malappuram","Palakkad","Pathanamthitta","Thiruvananthapuram","Thrissur","Wayanad"],
+  "Odisha": ["Angul","Balangir","Balasore","Bargarh","Bhadrak","Cuttack","Dhenkanal","Ganjam","Jagatsinghpur","Jajpur","Jharsuguda","Kalahandi","Kendrapara","Kendujhar","Khordha","Koraput","Mayurbhanj","Puri","Rayagada","Sambalpur","Sundargarh"],
+  "Assam": ["Barpeta","Cachar","Darrang","Dhemaji","Dhubri","Dibrugarh","Goalpara","Golaghat","Hailakandi","Jorhat","Kamrup","Kamrup Metropolitan","Karimganj","Kokrajhar","Lakhimpur","Morigaon","Nagaon","Nalbari","Sivasagar","Sonitpur","Tinsukia"],
+  "Jharkhand": ["Bokaro","Chatra","Deoghar","Dhanbad","Dumka","East Singhbhum","Garhwa","Giridih","Godda","Gumla","Hazaribagh","Jamtara","Khunti","Koderma","Latehar","Lohardaga","Pakur","Palamu","Ramgarh","Ranchi","Sahebganj","Seraikela Kharsawan","Simdega","West Singhbhum"],
+  "Uttarakhand": ["Almora","Bageshwar","Chamoli","Champawat","Dehradun","Haridwar","Nainital","Pauri Garhwal","Pithoragarh","Rudraprayag","Tehri Garhwal","Udham Singh Nagar","Uttarkashi"],
+  "Himachal Pradesh": ["Bilaspur","Chamba","Hamirpur","Kangra","Kinnaur","Kullu","Lahaul and Spiti","Mandi","Shimla","Sirmaur","Solan","Una"],
+  "Chhattisgarh": ["Balod","Baloda Bazar","Bastar","Bilaspur","Dantewada","Dhamtari","Durg","Janjgir-Champa","Jashpur","Korba","Koriya","Mahasamund","Raigarh","Raipur","Rajnandgaon","Surguja"],
+  "Goa": ["North Goa","South Goa"],
+  "Manipur": ["Bishnupur","Churachandpur","Imphal East","Imphal West","Senapati","Thoubal","Ukhrul"],
+  "Meghalaya": ["East Garo Hills","East Khasi Hills","North Garo Hills","Ri Bhoi","South Garo Hills","West Garo Hills","West Khasi Hills"],
+  "Tripura": ["Dhalai","Gomati","Khowai","North Tripura","Sepahijala","South Tripura","Unakoti","West Tripura"],
+  "Arunachal Pradesh": ["Anjaw","Changlang","East Kameng","East Siang","Lohit","Longding","Lower Dibang Valley","Lower Subansiri","Namsai","Papum Pare","Tawang","Tirap","Upper Siang","Upper Subansiri","West Kameng","West Siang"],
+  "Nagaland": ["Dimapur","Kiphire","Kohima","Longleng","Mokokchung","Mon","Peren","Phek","Tuensang","Wokha","Zunheboto"],
+  "Mizoram": ["Aizawl","Champhai","Kolasib","Lawngtlai","Lunglei","Mamit","Serchhip","Siaha"],
+  "Sikkim": ["East Sikkim","North Sikkim","South Sikkim","West Sikkim"]
+};
+
+function loadDistricts(state) {
+  const select = document.getElementById('districtSelect');
+  select.innerHTML = '<option value="">Select District</option>';
+  if (districts[state]) {
+    districts[state].forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.text = d;
+      select.appendChild(opt);
+    });
+  }
+}
+
+function handleCategory() {
+  const cat = document.getElementById('categorySelect').value;
+  const showBedroom = ['apartment','house','villa','pg'].includes(cat);
+  document.getElementById('bedroomSection').style.display = showBedroom ? 'block' : 'none';
+  document.getElementById('areaOnlySection').style.display = showBedroom ? 'none' : 'block';
+}
+
+function previewPhotos(input) {
+  const container = document.getElementById('newPhotoPreview');
+  container.innerHTML = '';
+  Array.from(input.files).slice(0, 10).forEach((file, i) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'photo-preview-item';
+      div.innerHTML = `<img src="${e.target.result}" alt="Photo ${i+1}"/>`;
+      container.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  handleCategory();
+});
+</script>

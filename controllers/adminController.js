@@ -403,3 +403,36 @@ exports.sendUsername = async (req, res) => {
   }
 };
 
+// ---- Pending Properties ----
+exports.pendingProperties = async (req, res) => {
+  try {
+    const properties = await Property.find({ status: 'pending' }).sort({ createdAt: -1 }).lean();
+    res.render('admin/pending', { properties, flashSuccess: req.query.success });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error');
+  }
+};
+
+// ---- Approve Property ----
+exports.approveProperty = async (req, res) => {
+  try {
+    await Property.findByIdAndUpdate(req.params.id, { status: 'available' });
+    res.redirect('/admin/pending?success=Property+approved+successfully!');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/pending');
+  }
+};
+
+// ---- Reject Property ----
+exports.rejectProperty = async (req, res) => {
+  try {
+    await Property.findByIdAndDelete(req.params.id);
+    res.redirect('/admin/pending?success=Property+rejected+and+deleted!');
+  } catch (err) {
+    console.error(err);
+    res.redirect('/admin/pending');
+  }
+};
+

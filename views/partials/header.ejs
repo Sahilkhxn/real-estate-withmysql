@@ -12,7 +12,9 @@
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"></noscript>
   <link rel="stylesheet" href="/css/style.css" />
-  <link rel="icon" type="image/jpeg" href="/images/logo.jpg" />
+  <link rel="icon" type="image/jpeg" href="/images/logo1.jpg" />
+    <link rel="icon" type="image/jpeg" href="/images/logo2.jpg" />
+
   <style>
     /* Page-specific overrides can go in templates */
   </style>
@@ -38,6 +40,8 @@
       <li><a href="/?type=rent" class="<%= typeof currentType !== 'undefined' && currentType === 'rent' ? 'active' : '' %>">Rent</a></li>
       <li><a href="/?type=sell" class="<%= typeof currentType !== 'undefined' && currentType === 'sell' ? 'active' : '' %>">Sell</a></li>
       <li><a href="/properties">All Properties</a></li>
+      <li><a href="/list-property" class="btn btn-primary btn-sm" style="margin-left:8px;color: rgb(137, 225, 5);">+ List Property</a></li>
+
     </ul>
   </div>
 </nav>

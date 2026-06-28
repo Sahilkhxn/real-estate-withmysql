@@ -164,3 +164,79 @@ exports.submitEnquiry = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to submit enquiry.' });
   }
 };
+
+
+// ---- User Property Listing Page ----
+exports.listPropertyPage = (req, res) => {
+  res.render('list-property', { error: null, success: null });
+};
+
+// ---- User Property Submit ----
+exports.submitUserProperty = async (req, res) => {
+  try {
+    console.log('Form data:', req.body); // ADD THIS
+    console.log('Files:', req.files); 
+    const { name, phone, title, description, price, priceType, type, propertyCategory, locationArea, city, state, pincode, bedrooms, bathrooms, propArea, amenities, contactNumber, whatsappNumber } = req.body;
+
+    if (!name || !phone || !title || !price || !type || !locationArea || !city || !contactNumber) {
+      return res.render('list-property', { error: 'Please fill all required fields.', success: null });
+    }
+
+    const photos = req.files ? req.files.map(f => f.path) : [];
+
+    const property = new Property({
+      title: title.trim(),
+      description: description || '',
+      price: Number(price),
+      priceType: priceType || 'total',
+      type,
+      propertyCategory: propertyCategory || 'apartment',
+      status: 'pending',
+      location: { area: locationArea.trim(), city: city.trim(), state: state || 'Rajasthan', pincode: pincode || '' },
+      bedrooms: Number(bedrooms) || 0,
+      bathrooms: Number(bathrooms) || 0,
+      area: (() => {
+  const val = Array.isArray(propArea) ? propArea.find(v => v !== '') : propArea;
+  return val && val !== '' && !isNaN(Number(val)) ? Number(val) : undefined;
+})(),
+
+      photos,
+      contactNumber: contactNumber.trim(),
+      whatsappNumber: whatsappNumber ? whatsappNumber.trim() : '',
+      amenities: amenities ? amenities.split(',').map(a => a.trim()).filter(Boolean) : [],
+      submittedBy: { name: name.trim(), phone: phone.trim() },
+      isUserSubmitted: true
+    });
+
+    await property.save();
+
+    // Email admin
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT),
+      secure: true,
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: `New Property Listing Request — ${title}`,
+      html: `
+        <h3>New Property Listing Request</h3>
+        <p><b>Submitted by:</b> ${name} (${phone})</p>
+        <p><b>Title:</b> ${title}</p>
+        <p><b>Location:</b> ${locationArea}, ${city}, ${state}</p>
+        <p><b>Price:</b> ₹${price}</p>
+        <p><b>Type:</b> ${type}</p>
+        <p>Login to admin panel to approve or reject.</p>
+      `
+    });
+
+    res.render('list-property', { error: null, success: 'Your property has been submitted! We will review and publish it shortly.' });
+
+  } catch (err) {
+    console.error(err);
+    res.render('list-property', { error: 'Failed to submit. Please try again.', success: null });
+  }
+};

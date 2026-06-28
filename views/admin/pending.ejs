@@ -1,0 +1,138 @@
+<%
+function formatPrice(n) {
+  if (n >= 10000000) return '₹' + (n / 10000000).toFixed(1) + ' Cr';
+  if (n >= 100000) return '₹' + (n / 100000).toFixed(1) + ' L';
+  return '₹' + n.toLocaleString('en-IN');
+}
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Pending Listings | Webjinny Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo"><span>Webjinny</span> Admin</div>
+    <ul class="sidebar-nav">
+      <li><a href="/admin/dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="/admin/properties">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Properties
+      </a></li>
+      <li><a href="/admin/pending" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Pending
+      </a></li>
+      <li><a href="/admin/properties/new">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Add Property
+      </a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <a href="/" style="color:rgba(255,255,255,0.5);font-size:0.82rem;display:block;margin-bottom:8px">← View Website</a>
+      <a href="/admin/logout" class="btn btn-danger btn-sm w-full" style="justify-content:center">Logout</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <% if (typeof flashSuccess !== 'undefined' && flashSuccess) { %>
+    <div class="flash flash-success">✓ <%= flashSuccess %></div>
+    <% } %>
+
+    <div class="admin-topbar">
+      <h1 class="admin-page-title">Pending Listings (<%= properties.length %>)</h1>
+    </div>
+
+    <% if (properties && properties.length > 0) { %>
+      <% properties.forEach(p => { %>
+      <div class="admin-card" style="margin-bottom:20px">
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+
+          <!-- Photo -->
+          <div style="width:120px;height:90px;flex-shrink:0;border-radius:8px;overflow:hidden;background:var(--bg)">
+            <% if (p.photos && p.photos.length > 0) { %>
+              <img src="<%= p.photos[0] %>" alt="" style="width:100%;height:100%;object-fit:cover"/>
+            <% } else { %>
+              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:0.75rem">No photo</div>
+            <% } %>
+          </div>
+
+          <!-- Details -->
+          <div style="flex:1;min-width:200px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <span class="badge badge-orange">Pending Review</span>
+              <span class="badge badge-blue"><%= p.type %></span>
+              <span class="badge" style="background:var(--bg);color:var(--text-mid)"><%= p.propertyCategory %></span>
+            </div>
+            <h3 style="font-size:1rem;font-weight:700;margin-bottom:4px"><%= p.title %></h3>
+            <p style="font-size:0.85rem;color:var(--text-mid);margin-bottom:4px">
+              📍 <%= p.location.area %>, <%= p.location.city %>, <%= p.location.state %>
+            </p>
+            <p style="font-size:0.9rem;font-weight:700;color:var(--blue);margin-bottom:8px"><%= formatPrice(p.price) %></p>
+
+            <% if (p.description) { %>
+            <p style="font-size:0.82rem;color:var(--text-light);margin-bottom:8px;line-height:1.5">
+              <%= p.description.slice(0, 150) %><%= p.description.length > 150 ? '...' : '' %>
+            </p>
+            <% } %>
+
+            <!-- Submitted by -->
+            <% if (p.submittedBy && p.submittedBy.name) { %>
+            <div style="background:var(--bg);border-radius:8px;padding:8px 12px;font-size:0.82rem;margin-bottom:12px">
+              <strong>Submitted by:</strong> <%= p.submittedBy.name %> — 
+              <a href="tel:<%= p.submittedBy.phone %>" style="color:var(--blue)"><%= p.submittedBy.phone %></a>
+            </div>
+            <% } %>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <form action="/admin/properties/<%= p._id %>/approve" method="POST" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>
+                <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Approve this property?')">
+                  ✓ Approve & Publish
+                </button>
+              </form>
+              <form action="/admin/properties/<%= p._id %>/reject" method="POST" style="display:inline">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>"/>
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Reject and delete this property?')">
+                  ✕ Reject
+                </button>
+              </form>
+              <a href="/property/<%= p._id %>" target="_blank" class="btn btn-outline btn-sm">Preview</a>
+            </div>
+          </div>
+
+          <!-- Specs -->
+          <div style="font-size:0.82rem;color:var(--text-mid);min-width:120px">
+            <% if (p.bedrooms > 0) { %><div>🛏 <%= p.bedrooms %> Bedrooms</div><% } %>
+            <% if (p.bathrooms > 0) { %><div>🚿 <%= p.bathrooms %> Bathrooms</div><% } %>
+            <% if (p.area) { %><div>📐 <%= p.area %> sq.ft</div><% } %>
+            <div style="margin-top:8px">📞 <%= p.contactNumber %></div>
+            <div style="margin-top:4px;color:var(--text-light)">
+              <%= new Date(p.createdAt).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) %>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+
+    <% } else { %>
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <h3>No pending listings</h3>
+      <p>All caught up! No properties waiting for review.</p>
+    </div>
+    <% } %>
+  </main>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

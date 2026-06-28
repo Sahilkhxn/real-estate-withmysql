@@ -34,5 +34,10 @@ router.patch('/properties/:id/status', auth, express.json(), adminController.upd
 router.patch('/properties/:id/featured', auth, express.json(), adminController.toggleFeatured);
 router.post('/verify-otp', otpLimiter, adminController.verifyOTP);
 router.post('/forgot-password', otpLimiter, adminController.sendOTP);
+router.get('/pending', auth, adminController.pendingProperties);
+router.post('/properties/:id/approve', auth, adminController.approveProperty);
+router.post('/properties/:id/reject', auth, adminController.rejectProperty);
+
+
 
 module.exports = router;
