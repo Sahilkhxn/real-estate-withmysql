@@ -8,6 +8,7 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const csrf = require('csurf');
 
 
 
@@ -54,4 +55,11 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`\n Webjinny running at http://localhost:${PORT}`);
   console.log(`   Admin panel: http://localhost:${PORT}/admin/login\n`);
+});
+
+
+app.use(csrf({ cookie: false }));
+app.use((req, res, next) => {
+  res.locals.csrfToken = req.csrfToken();
+  next();
 });

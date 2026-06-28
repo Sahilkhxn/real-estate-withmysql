@@ -22,7 +22,7 @@
     <% if (success) { %><div class="flash flash-success"><%= success %></div><% } %>
 
     <form action="/admin/forgot-username" method="POST">
-      <div class="form-group">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>"/> 
         <label class="form-label">Admin Email</label>
         <input type="email" name="email" class="form-control"
                placeholder="inquiry@webjinny.xyz" required
