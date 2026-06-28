@@ -3,7 +3,7 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
-
+const { otpLimiter } = require('../middleware/rateLimiter');
 // Login / Logout
 router.get('/login', adminController.loginPage);
 router.post('/login', adminController.login);
@@ -32,5 +32,7 @@ router.delete('/properties/:id', auth, adminController.deleteProperty);
 // AJAX status / featured toggles
 router.patch('/properties/:id/status', auth, express.json(), adminController.updateStatus);
 router.patch('/properties/:id/featured', auth, express.json(), adminController.toggleFeatured);
+router.post('/verify-otp', otpLimiter, adminController.verifyOTP);
+router.post('/forgot-password', otpLimiter, adminController.sendOTP);
 
 module.exports = router;

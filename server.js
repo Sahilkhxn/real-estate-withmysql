@@ -9,7 +9,11 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
+
 // ─── Database ───────────────────────────────────────────────────
+if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is missing!');
+if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET is missing!');
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/realestate')
   .then(() => console.log(' MongoDB connected'))
   .catch(err => { console.error(' MongoDB error:', err); process.exit(1); });

@@ -2,7 +2,7 @@ const Admin = require('../models/Admin');
 const Property = require('../models/Property');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-
+const crypto = require('crypto');
 // Escape special regex chars to prevent ReDoS
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -15,6 +15,26 @@ exports.loginPage = (req, res) => {
 };
 
 // ---- Login POST ----
+
+//     exports.login = async (req, res) => {
+//   try {
+//     const { username, password } = req.body;
+//     console.log('Login attempt:', username, password);
+//     const admin = await Admin.findOne({ username });
+//     console.log('Admin found:', admin);
+//     if (!admin) return res.render('admin/login', { error: 'Invalid username or password.', success: null });
+//     const isValid = await admin.comparePassword(password);
+//     console.log('Password valid:', isValid);
+//     if (!isValid) return res.render('admin/login', { error: 'Invalid username or password.', success: null });
+//     const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    
+//     res.redirect('/admin/dashboard');
+//   } catch (err) {
+//     console.error(err);res.cookie('adminToken', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
+//     res.render('admin/login', { error: 'Login failed.', success: null });
+//   }
+// };
+
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -23,13 +43,14 @@ exports.login = async (req, res) => {
     const isValid = await admin.comparePassword(password);
     if (!isValid) return res.render('admin/login', { error: 'Invalid username or password.', success: null });
     const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.cookie('adminToken', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+    res.cookie('adminToken', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
     res.redirect('/admin/dashboard');
   } catch (err) {
     console.error(err);
     res.render('admin/login', { error: 'Login failed.', success: null });
   }
 };
+
 
 // ---- Logout ----
 exports.logout = (req, res) => {
@@ -248,7 +269,8 @@ exports.sendOTP = async (req, res) => {
     if (!admin) return res.render('admin/forgot-password', { error: 'No admin found with this email.', success: null });
 
     // Generate 6 digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    const otp = crypto.randomInt(100000, 999999).toString();
     const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
     admin.resetOTP = otp;
