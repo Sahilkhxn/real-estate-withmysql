@@ -22,12 +22,15 @@
     <% if (success) { %><div class="flash flash-success"><%= success %></div><% } %>
 
     <form action="/admin/forgot-username" method="POST">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>"/> 
+      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"/>
+
+      <div class="form-group">
         <label class="form-label">Admin Email</label>
         <input type="email" name="email" class="form-control"
                placeholder="inquiry@webjinny.xyz" required
                style="background:white"/>
       </div>
+
       <button type="submit" class="btn btn-primary w-full mt-16" style="justify-content:center;padding:14px">
         Send Username
       </button>
