@@ -178,13 +178,15 @@ function errorForm(res, isEdit, body, message) {
 // ---- Create property ----
 exports.createProperty = async (req, res) => {
   try {
+    console.log('BODY:', JSON.stringify(req.body));
+    console.log('FILES:', req.files ? req.files.length : 0);
     const data = buildPropertyData(req.body, req.files, null);
+    console.log('DATA:', JSON.stringify(data));
     const property = new Property(data);
     await property.save();
     res.redirect('/admin/properties?success=Property+added+successfully!');
   } catch (err) {
-    console.error(err);
-    // Note: Cloudinary uploads already happened — no local file cleanup needed
+    console.error('CREATE ERROR:', err.message);
     errorForm(res, false, req.body, 'Failed to create: ' + err.message);
   }
 };
