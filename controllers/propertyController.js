@@ -183,13 +183,18 @@ exports.uploadPropertyPhotos = async (req, res) => {
   try {
     const { propertyId } = req.body;
     if (!propertyId) return res.status(400).json({ success: false, error: 'Property ID missing.' });
+    
     const photos = req.files ? req.files.map(f => f.path) : [];
     if (photos.length > 0) {
       await Property.findByIdAndUpdate(propertyId, { $push: { photos: { $each: photos } } });
     }
     res.json({ success: true, uploaded: photos.length });
+    
   } catch (err) {
-    console.error('Photo upload error:', err);
-    res.status(500).json({ success: false, error: 'Photo upload failed.' });
+    
+    console.error('Photo upload FULL ERROR:', JSON.stringify(err, null, 2));
+    console.error('Photo upload MESSAGE:', err.message);
+    console.error('Photo upload STACK:', err.stack);
+    res.status(500).json({ success: false, error: err.message || 'Photo upload failed.' });
   }
 };
