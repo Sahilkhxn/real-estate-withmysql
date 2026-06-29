@@ -259,7 +259,7 @@
             <label class="form-label">WhatsApp Number</label>
            
             <input type="number" name="whatsappNumber" class="form-control"
-       placeholder="9876543210"
+       placeholder="whatsapp Number"
        oninput="if(this.value.length>10) this.value=this.value.slice(0,10)"
        min="1000000000" max="9999999999"
        value="<%= isEdit ? (property.whatsappNumber || '') : '' %>"/>
