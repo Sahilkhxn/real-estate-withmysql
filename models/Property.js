@@ -10,6 +10,12 @@ const propertySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+
+  description: {
+  type: String,
+  default: ''
+},
+
   price: {
     type: Number,
     required: true
@@ -64,6 +70,7 @@ propertySchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+
 
 // Text search index
 propertySchema.index({ title: 'text', description: 'text', 'location.area': 'text', 'location.city': 'text' });

@@ -174,15 +174,11 @@ exports.listPropertyPage = (req, res) => {
 // ---- User Property Submit ----
 exports.submitUserProperty = async (req, res) => {
   try {
-    console.log('Form data:', req.body); // ADD THIS
-    console.log('Files:', req.files); 
     const { name, phone, title, description, price, priceType, type, propertyCategory, locationArea, city, state, pincode, bedrooms, bathrooms, propArea, amenities, contactNumber, whatsappNumber } = req.body;
 
     if (!name || !phone || !title || !price || !type || !locationArea || !city || !contactNumber) {
-      return res.render('list-property', { error: 'Please fill all required fields.', success: null });
+      return res.status(400).json({ success: false, error: 'Please fill all required fields.' });
     }
-
-    const photos = req.files ? req.files.map(f => f.path) : [];
 
     const property = new Property({
       title: title.trim(),
@@ -196,11 +192,10 @@ exports.submitUserProperty = async (req, res) => {
       bedrooms: Number(bedrooms) || 0,
       bathrooms: Number(bathrooms) || 0,
       area: (() => {
-  const val = Array.isArray(propArea) ? propArea.find(v => v !== '') : propArea;
-  return val && val !== '' && !isNaN(Number(val)) ? Number(val) : undefined;
-})(),
-
-      photos,
+        const val = Array.isArray(propArea) ? propArea.find(v => v !== '') : propArea;
+        return val && val !== '' && !isNaN(Number(val)) ? Number(val) : undefined;
+      })(),
+      photos: [],
       contactNumber: contactNumber.trim(),
       whatsappNumber: whatsappNumber ? whatsappNumber.trim() : '',
       amenities: amenities ? amenities.split(',').map(a => a.trim()).filter(Boolean) : [],
@@ -210,33 +205,26 @@ exports.submitUserProperty = async (req, res) => {
 
     await property.save();
 
-    // Email admin
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: Number(process.env.EMAIL_PORT),
-      secure: true,
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-    });
-
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL,
-      subject: `New Property Listing Request — ${title}`,
-      html: `
-        <h3>New Property Listing Request</h3>
-        <p><b>Submitted by:</b> ${name} (${phone})</p>
-        <p><b>Title:</b> ${title}</p>
-        <p><b>Location:</b> ${locationArea}, ${city}, ${state}</p>
-        <p><b>Price:</b> ₹${price}</p>
-        <p><b>Type:</b> ${type}</p>
-        <p>Login to admin panel to approve or reject.</p>
-      `
-    });
-
-    res.render('list-property', { error: null, success: 'Your property has been submitted! We will review and publish it shortly.' });
+    res.json({ success: true, propertyId: property._id });
 
   } catch (err) {
     console.error(err);
-    res.render('list-property', { error: 'Failed to submit. Please try again.', success: null });
+    res.status(500).json({ success: false, error: 'Failed to submit. Please try again.' });
+  }
+};
+
+// ---- Photos Upload (AJAX — Cloudinary, alag request) ----
+exports.uploadPropertyPhotos = async (req, res) => {
+  try {
+    const { propertyId } = req.body;
+    if (!propertyId) return res.status(400).json({ success: false, error: 'Property ID missing.' });
+    const photos = req.files ? req.files.map(f => f.path) : [];
+    if (photos.length > 0) {
+      await Property.findByIdAndUpdate(propertyId, { $push: { photos: { $each: photos } } });
+    }
+    res.json({ success: true, uploaded: photos.length });
+  } catch (err) {
+    console.error('Photo upload error:', err);
+    res.status(500).json({ success: false, error: 'Photo upload failed.' });
   }
 };

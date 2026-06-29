@@ -13,237 +13,265 @@
       <p style="color:var(--text-light);font-size:0.95rem">Fill in the details below. Our team will review and publish your listing within 24 hours.</p>
     </div>
 
-    <% if (error) { %>
-    <div class="flash flash-error"><%= error %></div>
-    <% } %>
-    <% if (success) { %>
-    <div class="flash flash-success" style="font-size:1rem;padding:16px"><%= success %></div>
-    <% } %>
+    <!-- Step indicator -->
+    <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:28px">
+      <div id="dot1" style="width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0">1</div>
+      <div style="flex:1;max-width:80px;height:2px;background:var(--border)" id="stepLine"></div>
+      <div id="dot2" style="width:34px;height:34px;border-radius:50%;background:var(--border);color:var(--text-light);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;flex-shrink:0">2</div>
+      <div style="font-size:0.82rem;color:var(--text-light)" id="stepLabel">Fill Details → Add Photos</div>
+    </div>
 
-    <% if (!success) { %>
-    <form action="/list-property" method="POST" enctype="multipart/form-data">
-      <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"/>
+    <!-- Error box -->
+    <div id="formError" class="flash flash-error" style="display:none;margin-bottom:16px"></div>
 
+    <!-- ════════════ SECTION 1: Details Form ════════════ -->
+    <div id="sectionDetails">
+      <form id="detailsForm">
 
-      <!-- Your Details -->
-      <div class="admin-card">
-        <div class="admin-card-header"><h2 class="admin-card-title">Your Details</h2></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Your Name *</label>
-            <input type="text" name="name" class="form-control" required placeholder="Full name"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Your Phone *</label>
-            <input type="tel" name="phone" class="form-control" required placeholder="+91 98765 43210"/>
-          </div>
-        </div>
-      </div>
-
-      <!-- Property Info -->
-      <div class="admin-card">
-        <div class="admin-card-header"><h2 class="admin-card-title">Property Details</h2></div>
-
-        <div class="form-group">
-          <label class="form-label">Property Title *</label>
-          <input type="text" name="title" class="form-control" required placeholder="e.g. 3 BHK Apartment in Malviya Nagar"/>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Listing Type *</label>
-            <select name="type" class="form-control" required>
-              <option value="">Select type</option>
-              <option value="buy">Buy</option>
-              <option value="rent">Rent</option>
-              <option value="sell">Sell</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Property Category</label>
-            <select name="propertyCategory" id="categorySelect" class="form-control" onchange="handleCategory()">
-              <option value="apartment">Apartment</option>
-              <option value="house">House</option>
-              <option value="villa">Villa</option>
-              <option value="plot">Plot / Land</option>
-              <option value="commercial">Commercial</option>
-              <option value="pg">PG / Hostel</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Description</label>
-          <textarea name="description" class="form-control" rows="4" placeholder="Describe your property..."></textarea>
-        </div>
-      </div>
-
-      <!-- Price -->
-      <div class="admin-card">
-        <div class="admin-card-header"><h2 class="admin-card-title">Price</h2></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Price (₹) *</label>
-            <input type="number" name="price" class="form-control" required placeholder="e.g. 4500000" min="0"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Price Type</label>
-            <select name="priceType" class="form-control">
-              <option value="total">Total Price</option>
-              <option value="per_month">Per Month</option>
-              <option value="per_sqft">Per Sq.ft</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Location -->
-      <div class="admin-card">
-        <div class="admin-card-header"><h2 class="admin-card-title">Location</h2></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">State *</label>
-            <select name="state" id="stateSelect" class="form-control" required onchange="loadDistricts(this.value)">
-              <option value="">Select State</option>
-              <option value="Andhra Pradesh">Andhra Pradesh</option>
-              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
-              <option value="Assam">Assam</option>
-              <option value="Bihar">Bihar</option>
-              <option value="Chhattisgarh">Chhattisgarh</option>
-              <option value="Goa">Goa</option>
-              <option value="Gujarat">Gujarat</option>
-              <option value="Haryana">Haryana</option>
-              <option value="Himachal Pradesh">Himachal Pradesh</option>
-              <option value="Jharkhand">Jharkhand</option>
-              <option value="Karnataka">Karnataka</option>
-              <option value="Kerala">Kerala</option>
-              <option value="Madhya Pradesh">Madhya Pradesh</option>
-              <option value="Maharashtra">Maharashtra</option>
-              <option value="Manipur">Manipur</option>
-              <option value="Meghalaya">Meghalaya</option>
-              <option value="Mizoram">Mizoram</option>
-              <option value="Nagaland">Nagaland</option>
-              <option value="Odisha">Odisha</option>
-              <option value="Punjab">Punjab</option>
-              <option value="Rajasthan">Rajasthan</option>
-              <option value="Sikkim">Sikkim</option>
-              <option value="Tamil Nadu">Tamil Nadu</option>
-              <option value="Telangana">Telangana</option>
-              <option value="Tripura">Tripura</option>
-              <option value="Uttar Pradesh">Uttar Pradesh</option>
-              <option value="Uttarakhand">Uttarakhand</option>
-              <option value="West Bengal">West Bengal</option>
-              <option value="Delhi">Delhi</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">District *</label>
-            <select name="city" id="districtSelect" class="form-control" required>
-              <option value="">Select State First</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Area / Locality *</label>
-            <input type="text" name="locationArea" class="form-control" required placeholder="e.g. Malviya Nagar"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Pincode</label>
-            <input type="text" name="pincode" class="form-control" placeholder="302001"/>
-          </div>
-        </div>
-      </div>
-
-      <!-- Specs -->
-      <div class="admin-card">
-        <div class="admin-card-header"><h2 class="admin-card-title">Property Specs</h2></div>
-
-        <div id="bedroomSection">
+        <div class="admin-card">
+          <div class="admin-card-header"><h2 class="admin-card-title">Your Details</h2></div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Bedrooms</label>
-              <input type="number" name="bedrooms" class="form-control" min="0" placeholder="0" value="0"/>
+              <label class="form-label">Your Name *</label>
+              <input type="text" name="name" class="form-control" required placeholder="Full name"/>
             </div>
             <div class="form-group">
-              <label class="form-label">Bathrooms</label>
-              <input type="number" name="bathrooms" class="form-control" min="0" placeholder="0" value="0"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Area (Sq. Ft)</label>
-              <input type="number" name="propArea" class="form-control" min="0" placeholder="1200"/>
+              <label class="form-label">Your Phone *</label>
+              <input type="tel" name="phone" class="form-control" required placeholder="+91 98765 43210"/>
             </div>
           </div>
         </div>
 
-        <div id="areaOnlySection" style="display:none">
+        <div class="admin-card">
+          <div class="admin-card-header"><h2 class="admin-card-title">Property Details</h2></div>
+          <div class="form-group">
+            <label class="form-label">Property Title *</label>
+            <input type="text" name="title" class="form-control" required placeholder="e.g. 3 BHK Apartment in Malviya Nagar"/>
+          </div>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Area (Sq. Ft)</label>
-              <input type="number" name="propArea" class="form-control" min="0" placeholder="1200"/>
+              <label class="form-label">Listing Type *</label>
+              <select name="type" class="form-control" required>
+                <option value="">Select type</option>
+                <option value="buy">Buy</option>
+                <option value="rent">Rent</option>
+                <option value="sell">Sell</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Property Category</label>
+              <select name="propertyCategory" id="categorySelect" class="form-control" onchange="handleCategory()">
+                <option value="apartment">Apartment</option>
+                <option value="house">House</option>
+                <option value="villa">Villa</option>
+                <option value="plot">Plot / Land</option>
+                <option value="commercial">Commercial</option>
+                <option value="pg">PG / Hostel</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="4" placeholder="Describe your property..."></textarea>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header"><h2 class="admin-card-title">Price</h2></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Price (₹) *</label>
+              <input type="number" name="price" class="form-control" required placeholder="e.g. 4500000" min="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price Type</label>
+              <select name="priceType" class="form-control">
+                <option value="total">Total Price</option>
+                <option value="per_month">Per Month</option>
+                <option value="per_sqft">Per Sq.ft</option>
+              </select>
             </div>
           </div>
         </div>
 
-        <div class="form-group" style="margin-top:14px">
-          <label class="form-label">Amenities (comma separated)</label>
-          <input type="text" name="amenities" class="form-control" placeholder="Parking, Lift, 24/7 Water, Power Backup"/>
-        </div>
-      </div>
-
-      <!-- Contact -->
-      <div class="admin-card">
-        <div class="admin-card-header"><h2 class="admin-card-title">Contact Details</h2></div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Contact Number *</label>
-            <input type="tel" name="contactNumber" class="form-control" required placeholder="+91 98765 43210"/>
+        <div class="admin-card">
+          <div class="admin-card-header"><h2 class="admin-card-title">Location</h2></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">State *</label>
+              <select name="state" id="stateSelect" class="form-control" required onchange="loadDistricts(this.value)">
+                <option value="">Select State</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                <option value="Assam">Assam</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Chhattisgarh">Chhattisgarh</option>
+                <option value="Goa">Goa</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                <option value="Jharkhand">Jharkhand</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Manipur">Manipur</option>
+                <option value="Meghalaya">Meghalaya</option>
+                <option value="Mizoram">Mizoram</option>
+                <option value="Nagaland">Nagaland</option>
+                <option value="Odisha">Odisha</option>
+                <option value="Punjab">Punjab</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Sikkim">Sikkim</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Telangana">Telangana</option>
+                <option value="Tripura">Tripura</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Uttarakhand">Uttarakhand</option>
+                <option value="West Bengal">West Bengal</option>
+                <option value="Delhi">Delhi</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">District *</label>
+              <select name="city" id="districtSelect" class="form-control" required>
+                <option value="">Select State First</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Area / Locality *</label>
+              <input type="text" name="locationArea" class="form-control" required placeholder="e.g. Malviya Nagar"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pincode</label>
+              <input type="text" name="pincode" class="form-control" placeholder="302001"/>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">WhatsApp Number</label>
-            <input type="tel" name="whatsappNumber" class="form-control" placeholder="+91 98765 43210"/>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header"><h2 class="admin-card-title">Property Specs</h2></div>
+          <div id="bedroomSection">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Bedrooms</label>
+                <input type="number" name="bedrooms" class="form-control" min="0" placeholder="0" value="0"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bathrooms</label>
+                <input type="number" name="bathrooms" class="form-control" min="0" placeholder="0" value="0"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Area (Sq. Ft)</label>
+                <input type="number" name="propArea" class="form-control" min="0" placeholder="1200"/>
+              </div>
+            </div>
+          </div>
+          <div id="areaOnlySection" style="display:none">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Area (Sq. Ft)</label>
+                <input type="number" name="propArea" class="form-control" min="0" placeholder="1200"/>
+              </div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:14px">
+            <label class="form-label">Amenities (comma separated)</label>
+            <input type="text" name="amenities" class="form-control" placeholder="Parking, Lift, 24/7 Water, Power Backup"/>
           </div>
         </div>
-      </div>
 
-      <!-- Photos -->
-      <div class="admin-card">
-        <div class="admin-card-header"><h2 class="admin-card-title">Photos</h2></div>
-        <div class="photo-upload-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
-          <div id="uploadProgress" style="display:none;margin-top:12px">
-  <div style="background:var(--border);border-radius:20px;height:8px;overflow:hidden">
-    <div id="progressBar" style="background:linear-gradient(90deg,var(--blue-dark),var(--blue));height:100%;width:0%;transition:width 0.3s;border-radius:20px"></div>
-  </div>
-  <p id="progressText" style="font-size:0.82rem;color:var(--text-light);margin-top:6px;text-align:center">Uploading photos...</p>
-</div>
+        <div class="admin-card">
+          <div class="admin-card-header"><h2 class="admin-card-title">Contact Details</h2></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Contact Number *</label>
+              <input type="tel" name="contactNumber" class="form-control" required placeholder="+91 98765 43210"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">WhatsApp Number</label>
+              <input type="tel" name="whatsappNumber" class="form-control" placeholder="+91 98765 43210"/>
+            </div>
+          </div>
+        </div>
 
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <!-- STEP 1 SUBMIT BUTTON -->
+        <div style="text-align:center;margin-bottom:32px">
+          <button type="submit" id="step1Btn" class="btn btn-primary btn-lg" style="padding:14px 48px;font-size:1rem">
+            Save & Add Photos →
+          </button>
+          <p style="margin-top:10px;font-size:0.82rem;color:var(--text-light)">You can add photos in the next step (optional).</p>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- ════════════ SECTION 2: Photos (hidden initially) ════════════ -->
+    <div id="sectionPhotos" style="display:none">
+
+      <div class="admin-card" style="border:2px solid var(--primary)">
+        <div class="admin-card-header" style="background:var(--primary-light, #eff6ff)">
+          <h2 class="admin-card-title" style="color:var(--primary)">✅ Details Saved! Now Add Photos</h2>
+        </div>
+        <p style="color:var(--text-light);margin-bottom:20px;font-size:0.92rem">
+          Photos optional hain — inse listing attractive banti hai. Max 5 photos, 5MB each.
+        </p>
+
+        <div class="photo-upload-area" id="dropArea" onclick="document.getElementById('photoInput').click()" style="cursor:pointer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;margin-bottom:8px">
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
             <polyline points="17 8 12 3 7 8"/>
             <line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
-          <p>Click to upload or drag & drop photos</p>
-          <small>JPEG, PNG, WebP · Max 5MB each · Up to 10 photos</small>
+          <p>Click to select photos</p>
+          <small>JPEG, PNG, WebP · Max 5MB each · Up to 5 photos</small>
         </div>
-        <input type="file" id="photoInput" name="photos" accept="image/jpeg,image/jpg,image/png,image/webp" multiple style="display:none" onchange="previewPhotos(this)"/>
-        <div class="photo-preview-grid" id="newPhotoPreview"></div>
+
+        <input type="file" id="photoInput" accept="image/jpeg,image/jpg,image/png,image/webp" multiple style="display:none"
+          onchange="if(this.files.length>5){alert('Max 5 photos allowed');this.value='';return;} previewPhotos(this)"/>
+
+        <div class="photo-preview-grid" id="photoPreview" style="margin-top:12px"></div>
+
+        <!-- Upload progress bar -->
+        <div id="uploadProgress" style="display:none;margin-top:16px">
+          <div style="background:var(--border);border-radius:20px;height:8px;overflow:hidden">
+            <div id="progressBar" style="background:#2563eb;height:100%;width:0%;transition:width 0.4s;border-radius:20px"></div>
+
+          </div>
+          <p id="progressText" style="font-size:0.82rem;color:var(--text-light);margin-top:6px;text-align:center">Uploading...</p>
+        </div>
+
+        <div id="uploadResult" style="margin-top:10px;font-size:0.9rem"></div>
       </div>
 
-      <!-- Submit -->
-      <div style="text-align:center;margin-bottom:32px">
-       
-        <button type="submit" id="submitBtn" class="btn btn-primary btn-lg" style="padding:14px 48px;font-size:1rem">
-  Submit Property
-</button>
-
-        <p style="margin-top:12px;font-size:0.82rem;color:var(--text-light)">Our team will review your listing within 24 hours.</p>
+      <!-- STEP 2 BUTTONS -->
+      <div style="text-align:center;margin-bottom:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <button id="uploadBtn" onclick="uploadPhotos()" class="btn btn-primary btn-lg" style="padding:14px 36px;font-size:1rem">
+          Upload Photos & Finish
+        </button>
+        <button onclick="skipAndFinish()" class="btn" style="padding:14px 36px;font-size:1rem;border:1px solid var(--border)">
+          Skip Photos
+        </button>
       </div>
-    </form>
-    <% } %>
+    </div>
+
+    <!-- ════════════ FINAL SUCCESS ════════════ -->
+    <div id="sectionSuccess" style="display:none;text-align:center;padding:48px 20px">
+      <div style="font-size:3.5rem;margin-bottom:16px">🎉</div>
+      <h2 style="font-weight:900;font-size:1.6rem;margin-bottom:10px">Property Submitted!</h2>
+      <p style="color:var(--text-light);margin-bottom:28px;font-size:0.95rem">Our team will review and publish your listing within 24 hours.</p>
+      <a href="/" class="btn btn-primary" style="padding:12px 36px;font-size:1rem">Back to Home</a>
+    </div>
+
   </div>
 </div>
 
 <%- include('partials/footer') %>
 
 <script>
+let savedPropertyId = null;
+
+// ── Districts data ──
 const districts = {
   "Rajasthan": ["Ajmer","Alwar","Banswara","Baran","Barmer","Bharatpur","Bhilwara","Bikaner","Bundi","Chittorgarh","Churu","Dausa","Dholpur","Dungarpur","Hanumangarh","Jaipur","Jaisalmer","Jalore","Jhalawar","Jhunjhunu","Jodhpur","Karauli","Kota","Nagaur","Pali","Pratapgarh","Rajsamand","Sawai Madhopur","Sikar","Sirohi","Sri Ganganagar","Tonk","Udaipur"],
   "Maharashtra": ["Mumbai","Pune","Nagpur","Nashik","Aurangabad","Solapur","Kolhapur","Thane","Raigad","Satara","Sangli","Ahmednagar","Jalgaon","Amravati","Nanded","Latur","Osmanabad","Buldhana","Akola","Washim","Yavatmal","Wardha","Bhandara","Gondia","Chandrapur","Gadchiroli","Sindhudurg","Ratnagiri","Dhule","Nandurbar","Jalna","Parbhani","Hingoli","Bid"],
@@ -282,8 +310,7 @@ function loadDistricts(state) {
   if (districts[state]) {
     districts[state].forEach(d => {
       const opt = document.createElement('option');
-      opt.value = d;
-      opt.text = d;
+      opt.value = d; opt.text = d;
       select.appendChild(opt);
     });
   }
@@ -297,38 +324,126 @@ function handleCategory() {
 }
 
 function previewPhotos(input) {
-  const container = document.getElementById('newPhotoPreview');
+  const container = document.getElementById('photoPreview');
   container.innerHTML = '';
-  Array.from(input.files).slice(0, 10).forEach((file, i) => {
+  Array.from(input.files).slice(0, 5).forEach((file, i) => {
     const reader = new FileReader();
     reader.onload = e => {
       const div = document.createElement('div');
       div.className = 'photo-preview-item';
-      div.innerHTML = `<img src="${e.target.result}" alt="Photo ${i+1}"/>`;
+      div.innerHTML = `<img src="${e.target.result}" alt="Photo ${i+1}" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>`;
       container.appendChild(div);
     };
     reader.readAsDataURL(file);
   });
 }
 
-document.querySelector('form').addEventListener('submit', function() {
-  const files = document.getElementById('photoInput').files;
-  if (files.length > 0) {
-    document.getElementById('uploadProgress').style.display = 'block';
-    document.getElementById('submitBtn').disabled = true;
-    document.getElementById('submitBtn').textContent = 'Uploading...';
-    
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += (100 - progress) * 0.1;
-      document.getElementById('progressBar').style.width = Math.min(progress, 90) + '%';
-      document.getElementById('progressText').textContent = `Uploading photos... ${Math.round(Math.min(progress, 90))}%`;
-      if (progress >= 90) clearInterval(interval);
-    }, 800);
+document.addEventListener('DOMContentLoaded', () => { handleCategory(); });
+
+// ── STEP 1: Details submit ──
+document.getElementById('detailsForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('step1Btn');
+  const errEl = document.getElementById('formError') || document.createElement('div');
+
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+  errEl.style.display = 'none';
+
+  const body = new URLSearchParams(new FormData(this)).toString();
+
+  try {
+    const res = await fetch('/list-property', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body
+    });
+    const data = await res.json();
+
+    if (!data.success) {
+      errEl.textContent = data.error || 'Something went wrong. Please try again.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Save & Add Photos →';
+      btn.disabled = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    savedPropertyId = data.propertyId;
+
+    // Step indicator update
+    document.getElementById('dot1').textContent = '✓';
+    document.getElementById('dot1').style.background = '#22c55e';
+    document.getElementById('dot2').style.background = 'var(--primary)';
+    document.getElementById('dot2').style.color = '#fff';
+    document.getElementById('stepLabel').textContent = 'Details Saved ✓ → Add Photos';
+
+    // Show photo section, hide details
+    document.getElementById('sectionDetails').style.display = 'none';
+    document.getElementById('sectionPhotos').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch (err) {
+    errEl.textContent = 'Network error. Please check your connection and try again.';
+    errEl.style.display = 'block';
+    btn.textContent = 'Save & Add Photos →';
+    btn.disabled = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  handleCategory();
-});
+// ── STEP 2: Upload photos ──
+async function uploadPhotos() {
+  const input = document.getElementById('photoInput');
+  if (!input.files.length) {
+    alert('Pehle photos select karo!');
+    return;
+  }
+
+  const btn = document.getElementById('uploadBtn');
+  btn.textContent = 'Uploading...';
+  btn.disabled = true;
+  document.getElementById('uploadProgress').style.display = 'block';
+
+  let prog = 10;
+  const interval = setInterval(() => {
+    prog += (90 - prog) * 0.15;
+    document.getElementById('progressBar').style.width = Math.min(prog, 88) + '%';
+    document.getElementById('progressText').textContent = `Uploading... ${Math.round(Math.min(prog, 88))}%`;
+  }, 600);
+
+  const formData = new FormData();
+  formData.append('propertyId', savedPropertyId);
+  Array.from(input.files).forEach(f => formData.append('photos', f));
+
+  try {
+    const res = await fetch('/list-property/upload-photos', { method: 'POST', body: formData });
+    const result = await res.json();
+    clearInterval(interval);
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('progressText').textContent = 'Done!';
+
+    if (result.success) {
+      showSuccess();
+    } else {
+      document.getElementById('uploadResult').innerHTML = '<span style="color:red">⚠️ Upload failed. Try again or skip.</span>';
+      btn.textContent = 'Retry Upload';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    clearInterval(interval);
+    document.getElementById('uploadResult').innerHTML = '<span style="color:red">⚠️ Network error. Try again or skip.</span>';
+    btn.textContent = 'Retry Upload';
+    btn.disabled = false;
+  }
+}
+
+function skipAndFinish() { showSuccess(); }
+
+function showSuccess() {
+  document.getElementById('sectionPhotos').style.display = 'none';
+  document.getElementById('sectionSuccess').style.display = 'block';
+  document.getElementById('stepLabel').textContent = 'All Done! ✓';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 </script>
