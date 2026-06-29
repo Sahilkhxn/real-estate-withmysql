@@ -57,6 +57,7 @@ contactNumber: { type: String, required: true, validate: {
   photos: [{ type: String }],
   contactNumber: { type: String, required: true },
   whatsappNumber: { type: String },
+  ownerEmail: { type: String, trim: true, default: '' },
   status: {
     type: String,
       enum: ['available', 'sold', 'rented', 'pending'],
