@@ -20,6 +20,18 @@ router.post('/list-property/upload-photos', (req, res, next) => {
     }
     next();
   });
-}, propertyController.uploadPropertyPhotos);;       // photos ke liye alag route
+}, propertyController.uploadPropertyPhotos);
+
+router.get('/about', (req, res) => {
+  res.render('about', { title: 'About Us' });
+});
+
+router.get('/contact', (req, res) => {
+  res.render('contact', { title: 'Contact Us' });
+});
+
+router.get('/privacy-policy', (req, res) => {
+  res.render('privacy-policy', { title: 'Privacy Policy' });
+});
 
 module.exports = router;
