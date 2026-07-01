@@ -3,10 +3,6 @@ const Property = require('../models/Property');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
-// Escape special regex chars to prevent ReDoS
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
 // ---- Login page ----
 exports.loginPage = (req, res) => {
@@ -15,34 +11,16 @@ exports.loginPage = (req, res) => {
 };
 
 // ---- Login POST ----
-
-//     exports.login = async (req, res) => {
-//   try {
-//     const { username, password } = req.body;
-//     console.log('Login attempt:', username, password);
-//     const admin = await Admin.findOne({ username });
-//     console.log('Admin found:', admin);
-//     if (!admin) return res.render('admin/login', { error: 'Invalid username or password.', success: null });
-//     const isValid = await admin.comparePassword(password);
-//     console.log('Password valid:', isValid);
-//     if (!isValid) return res.render('admin/login', { error: 'Invalid username or password.', success: null });
-//     const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    
-//     res.redirect('/admin/dashboard');
-//   } catch (err) {
-//     console.error(err);res.cookie('adminToken', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
-//     res.render('admin/login', { error: 'Login failed.', success: null });
-//   }
-// };
-
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
-    const admin = await Admin.findOne({ username });
+    const admin = await Admin.findByUsername(username);
     if (!admin) return res.render('admin/login', { error: 'Invalid username or password.', success: null });
-    const isValid = await admin.comparePassword(password);
+
+    const isValid = await Admin.comparePassword(password, admin.password);
     if (!isValid) return res.render('admin/login', { error: 'Invalid username or password.', success: null });
-    const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+    const token = jwt.sign({ id: admin.id, username: admin.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
     res.cookie('adminToken', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
     res.redirect('/admin/dashboard');
   } catch (err) {
@@ -50,7 +28,6 @@ exports.login = async (req, res) => {
     res.render('admin/login', { error: 'Login failed.', success: null });
   }
 };
-
 
 // ---- Logout ----
 exports.logout = (req, res) => {
@@ -61,14 +38,24 @@ exports.logout = (req, res) => {
 // ---- Dashboard ----
 exports.dashboard = async (req, res) => {
   try {
-    const [total, available, sold, featured, recentProperties] = await Promise.all([
-      Property.countDocuments(),
-      Property.countDocuments({ status: 'available' }),
-      Property.countDocuments({ status: { $in: ['sold', 'rented'] } }),
-      Property.countDocuments({ featured: true }),
-      Property.find().sort({ createdAt: -1 }).limit(10).lean()
+    const [total, available, sold, featured, recent] = await Promise.all([
+      Property.countProperties({}),
+      Property.countProperties({ status: 'available' }),
+      // status IN ('sold','rented') — countProperties doesn't support "IN" directly,
+      // so we sum the two counts instead.
+      Property.countProperties({ status: 'sold' }).then(async soldCount => {
+        const rentedCount = await Property.countProperties({ status: 'rented' });
+        return soldCount + rentedCount;
+      }),
+      Property.countProperties({ featured: true }),
+      Property.getProperties({}, { page: 1, limit: 10 })
     ]);
-    res.render('admin/dashboard', { stats: { total, available, sold, featured }, recentProperties, flashSuccess: req.query.success });
+
+    res.render('admin/dashboard', {
+      stats: { total, available, sold, featured },
+      recentProperties: recent.properties,
+      flashSuccess: req.query.success
+    });
   } catch (err) {
     console.error(err);
     res.status(500).send('Dashboard error');
@@ -80,27 +67,22 @@ exports.listProperties = async (req, res) => {
   try {
     const { q, status, type, page = 1 } = req.query;
     const limit = 20;
-    const skip = (Number(page) - 1) * limit;
-    const filter = { status: { $ne: 'pending' } };
-    if (status) filter.status = status;
-    if (type) filter.type = type;
-    if (q) {
-      const safeQ = escapeRegex((q || "").trim().slice(0, 100));
-      filter.$or = [
-        { title: { $regex: safeQ, $options: 'i' } },
-        { 'location.area': { $regex: safeQ, $options: 'i' } },
-        { 'location.city': { $regex: safeQ, $options: 'i' } }
-      ];
+
+    const filters = { statusNotIn: ['pending'] };
+    if (status) {
+      filters.status = status;
+      delete filters.statusNotIn; // explicit status overrides the "not pending" default
     }
-    const [properties, total] = await Promise.all([
-      Property.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      Property.countDocuments(filter)
-    ]);
+    if (type) filters.type = type;
+    if (q) filters.search = q.trim().slice(0, 100);
+
+    const result = await Property.getProperties(filters, { page: Number(page), limit });
+
     res.render('admin/properties', {
-      properties,
-      total,
+      properties: result.properties,
+      total: result.total,
       currentPage: Number(page),
-      totalPages: Math.ceil(total / limit),
+      totalPages: result.totalPages,
       query: req.query,
       flashSuccess: req.query.success,
       flashError: null
@@ -126,7 +108,6 @@ function buildPropertyData(body, files, existingPhotos) {
   const city         = String(body.city         || '').trim();
   const state        = String(body.state        || 'Rajasthan').trim();
   const pincode      = String(body.pincode      || '').trim();
-  // const propArea     = body.propArea ? Number(body.propArea) : undefined;
   const propArea = body.propArea && body.propArea !== '' && !isNaN(Number(body.propArea)) ? Number(body.propArea) : undefined;
 
   // f.path = Cloudinary full URL (https://res.cloudinary.com/...)
@@ -178,12 +159,8 @@ function errorForm(res, isEdit, body, message) {
 // ---- Create property ----
 exports.createProperty = async (req, res) => {
   try {
-    console.log('BODY:', JSON.stringify(req.body));
-    console.log('FILES:', req.files ? req.files.length : 0);
     const data = buildPropertyData(req.body, req.files, null);
-    console.log('DATA:', JSON.stringify(data));
-    const property = new Property(data);
-    await property.save();
+    await Property.createProperty(data);
     res.redirect('/admin/properties?success=Property+added+successfully!');
   } catch (err) {
     console.error('CREATE ERROR:', err.message);
@@ -194,7 +171,7 @@ exports.createProperty = async (req, res) => {
 // ---- Edit property form ----
 exports.editPropertyForm = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id).lean();
+    const property = await Property.getPropertyById(req.params.id);
     if (!property) return res.redirect('/admin/properties');
     res.render('admin/property-form', { isEdit: true, property, flashError: null });
   } catch (err) {
@@ -206,20 +183,15 @@ exports.editPropertyForm = async (req, res) => {
 // ---- Update property ----
 exports.updateProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id);
-    if (!property) return res.redirect('/admin/properties');
+    const existing = await Property.getPropertyById(req.params.id);
+    if (!existing) return res.redirect('/admin/properties');
 
     const keptPhotos = req.body.existingPhotos
       ? (Array.isArray(req.body.existingPhotos) ? req.body.existingPhotos : [req.body.existingPhotos])
       : [];
 
-    // Note: Cloudinary photos — local fs.unlink not needed
-    // Removed photos are simply excluded from keptPhotos array
-
     const data = buildPropertyData(req.body, req.files, keptPhotos);
-    Object.assign(property, data);
-    property.updatedAt = Date.now();
-    await property.save();
+    await Property.updateProperty(req.params.id, data);
     res.redirect('/admin/properties?success=Property+updated+successfully!');
   } catch (err) {
     console.error(err);
@@ -230,9 +202,8 @@ exports.updateProperty = async (req, res) => {
 // ---- Delete property (AJAX) ----
 exports.deleteProperty = async (req, res) => {
   try {
-    const property = await Property.findByIdAndDelete(req.params.id);
-    if (!property) return res.json({ success: false, message: 'Not found' });
-    // Note: Cloudinary photos cleanup skipped (URLs stored, not local files)
+    const deleted = await Property.deleteProperty(req.params.id);
+    if (!deleted) return res.json({ success: false, message: 'Not found' });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -242,7 +213,7 @@ exports.deleteProperty = async (req, res) => {
 // ---- Update status (AJAX) ----
 exports.updateStatus = async (req, res) => {
   try {
-    await Property.findByIdAndUpdate(req.params.id, { status: req.body.status, updatedAt: Date.now() });
+    await Property.updateProperty(req.params.id, { status: req.body.status });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -252,12 +223,13 @@ exports.updateStatus = async (req, res) => {
 // ---- Toggle featured (AJAX) ----
 exports.toggleFeatured = async (req, res) => {
   try {
-    await Property.findByIdAndUpdate(req.params.id, { featured: req.body.featured, updatedAt: Date.now() });
+    await Property.updateProperty(req.params.id, { featured: req.body.featured });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 // ---- Forgot Password Page ----
 exports.forgotPasswordPage = (req, res) => {
   res.render('admin/forgot-password', { error: null, success: null });
@@ -267,19 +239,14 @@ exports.forgotPasswordPage = (req, res) => {
 exports.sendOTP = async (req, res) => {
   try {
     const { email } = req.body;
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findByEmail(email);
     if (!admin) return res.render('admin/forgot-password', { error: 'No admin found with this email.', success: null });
 
-    // Generate 6 digit OTP
-    
     const otp = crypto.randomInt(100000, 999999).toString();
     const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
-    admin.resetOTP = otp;
-    admin.resetOTPExpiry = expiry;
-    await admin.save();
+    await Admin.setResetOTP(email, otp, expiry);
 
-    // Send email
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: Number(process.env.EMAIL_PORT),
@@ -318,9 +285,9 @@ exports.verifyOTPPage = (req, res) => {
 exports.verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findByEmail(email);
 
-    if (!admin || admin.resetOTP !== otp || admin.resetOTPExpiry < new Date()) {
+    if (!admin || admin.resetOTP !== otp || new Date(admin.resetOTPExpiry) < new Date()) {
       return res.render('admin/verify-otp', { error: 'Invalid or expired OTP.', email });
     }
 
@@ -348,15 +315,13 @@ exports.resetPassword = async (req, res) => {
       return res.render('admin/reset-password', { error: 'Password must be at least 6 characters.', email, otp });
     }
 
-    const admin = await Admin.findOne({ email });
-    if (!admin || admin.resetOTP !== otp || admin.resetOTPExpiry < new Date()) {
+    const admin = await Admin.findByEmail(email);
+    if (!admin || admin.resetOTP !== otp || new Date(admin.resetOTPExpiry) < new Date()) {
       return res.render('admin/reset-password', { error: 'Invalid or expired OTP.', email, otp });
     }
 
-    admin.password = password;
-    admin.resetOTP = null;
-    admin.resetOTPExpiry = null;
-    await admin.save();
+    await Admin.updatePassword(admin.id, password);
+    await Admin.clearResetOTP(admin.id);
 
     res.redirect('/admin/login?success=Password+reset+successfully!');
   } catch (err) {
@@ -374,7 +339,7 @@ exports.forgotUsernamePage = (req, res) => {
 exports.sendUsername = async (req, res) => {
   try {
     const { email } = req.body;
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findByEmail(email);
     if (!admin) return res.render('admin/forgot-username', { error: 'No admin found with this email.', success: null });
 
     const transporter = nodemailer.createTransport({
@@ -406,12 +371,11 @@ exports.sendUsername = async (req, res) => {
 };
 
 // ---- Pending Properties ----
-
 exports.pendingProperties = async (req, res) => {
   try {
-    const properties = await Property.find({ status: 'pending' }).sort({ createdAt: -1 }).lean();
-    res.render('admin/pending', { 
-      properties, 
+    const result = await Property.getProperties({ status: 'pending' }, { page: 1, limit: 1000 });
+    res.render('admin/pending', {
+      properties: result.properties,
       flashSuccess: req.query.success
     });
   } catch (err) {
@@ -423,7 +387,7 @@ exports.pendingProperties = async (req, res) => {
 // ---- Approve Property ----
 exports.approveProperty = async (req, res) => {
   try {
-    await Property.findByIdAndUpdate(req.params.id, { status: 'available' });
+    await Property.updateProperty(req.params.id, { status: 'available' });
     res.redirect('/admin/pending?success=Property+approved+successfully!');
   } catch (err) {
     console.error(err);
@@ -434,7 +398,7 @@ exports.approveProperty = async (req, res) => {
 // ---- Reject Property ----
 exports.rejectProperty = async (req, res) => {
   try {
-    await Property.findByIdAndDelete(req.params.id);
+    await Property.deleteProperty(req.params.id);
     res.redirect('/admin/pending?success=Property+rejected+and+deleted!');
   } catch (err) {
     console.error(err);
@@ -445,7 +409,7 @@ exports.rejectProperty = async (req, res) => {
 // ---- Preview Pending Property ----
 exports.previewProperty = async (req, res) => {
   try {
-    const property = await Property.findById(req.params.id).lean();
+    const property = await Property.getPropertyById(req.params.id);
     if (!property) return res.status(404).render('error', { message: 'Property not found.' });
     res.render('property-detail', { property });
   } catch (err) {
@@ -453,4 +417,3 @@ exports.previewProperty = async (req, res) => {
     res.status(500).render('error', { message: 'Something went wrong.' });
   }
 };
-

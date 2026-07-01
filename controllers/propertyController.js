@@ -13,27 +13,25 @@ const transporter = nodemailer.createTransport({
   tls: { rejectUnauthorized: false }
 });
 
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 // ---- Homepage ----
 exports.homepage = async (req, res) => {
   try {
     const { type, category, sort } = req.query;
-    const filter = { status: 'available' };
-    if (type) filter.type = type;
-    if (category) filter.propertyCategory = category;
-    const sortObj = sort === 'price_asc' ? { price: 1 } : sort === 'price_desc' ? { price: -1 } : { createdAt: -1 };
-    const [properties, featured, totalProperties, availableCount] = await Promise.all([
-      Property.find(filter).sort(sortObj).limit(12).lean(),
-      Property.find({ featured: true, status: 'available' }).sort({ createdAt: -1 }).limit(3).lean(),
-      Property.countDocuments({ status: 'available' }),
-      Property.countDocuments({ status: 'available' })
+    const filters = { status: 'available' };
+    if (type) filters.type = type;
+    if (category) filters.propertyCategory = category;
+
+    const [listResult, featuredResult, availableCount, cities] = await Promise.all([
+      Property.getProperties(filters, { page: 1, limit: 12 }, sort),
+      Property.getProperties({ featured: true, status: 'available' }, { page: 1, limit: 3 }),
+      Property.countProperties({ status: 'available' }),
+      Property.getDistinctCities({ status: 'available' })
     ]);
-    const cities = await Property.distinct('location.city');
+
     res.render('index', {
-      properties, featured, totalProperties,
+      properties: listResult.properties,
+      featured: featuredResult.properties,
+      totalProperties: availableCount,
       stats: { available: availableCount, cities: cities.length },
       query: req.query
     });
@@ -48,33 +46,21 @@ exports.listProperties = async (req, res) => {
   try {
     const { q, type, category, minPrice, maxPrice, sort, page = 1 } = req.query;
     const limit = 12;
-    const skip = (Number(page) - 1) * limit;
-    const filter = { status: 'available' };
-    if (type) filter.type = type;
-    if (category) filter.propertyCategory = category;
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
-    }
-    if (q && q.trim()) {
-      const safeQ = escapeRegex(q.trim().slice(0, 100));
-      filter.$or = [
-        { title: { $regex: safeQ, $options: 'i' } },
-        { 'location.area': { $regex: safeQ, $options: 'i' } },
-        { 'location.city': { $regex: safeQ, $options: 'i' } },
-        { description: { $regex: safeQ, $options: 'i' } }
-      ];
-    }
-    const sortObj = sort === 'price_asc' ? { price: 1 } : sort === 'price_desc' ? { price: -1 } : { createdAt: -1 };
-    const [properties, total] = await Promise.all([
-      Property.find(filter).sort(sortObj).skip(skip).limit(limit).lean(),
-      Property.countDocuments(filter)
-    ]);
+
+    const filters = { status: 'available' };
+    if (type) filters.type = type;
+    if (category) filters.propertyCategory = category;
+    if (minPrice) filters.minPrice = Number(minPrice);
+    if (maxPrice) filters.maxPrice = Number(maxPrice);
+    if (q && q.trim()) filters.search = q.trim().slice(0, 100);
+
+    const result = await Property.getProperties(filters, { page: Number(page), limit }, sort);
+
     res.render('properties', {
-      properties, total,
+      properties: result.properties,
+      total: result.total,
       currentPage: Number(page),
-      totalPages: Math.ceil(total / limit),
+      totalPages: result.totalPages,
       query: req.query
     });
   } catch (err) {
@@ -86,8 +72,10 @@ exports.listProperties = async (req, res) => {
 // ---- Single property detail ----
 exports.propertyDetail = async (req, res) => {
   try {
-    const property = await Property.findOne({ _id: req.params.id, status: 'available' }).lean();
-    if (!property) return res.status(404).render('error', { message: 'Property not found or no longer available.' });
+    const property = await Property.getPropertyById(req.params.id);
+    if (!property || property.status !== 'available') {
+      return res.status(404).render('error', { message: 'Property not found or no longer available.' });
+    }
     res.render('property-detail', { property });
   } catch (err) {
     console.error(err);
@@ -102,10 +90,10 @@ exports.submitEnquiry = async (req, res) => {
     if (!name || !phone || !message) {
       return res.status(400).json({ success: false, message: 'Name, phone and message are required.' });
     }
-    const enquiry = new Enquiry({ name, phone, email, message, propertyId });
-    await enquiry.save();
 
-    const property = await Property.findById(propertyId).lean();
+    await Enquiry.createEnquiry({ name, phone, email, message, propertyId });
+
+    const property = await Property.getPropertyById(propertyId);
     if (property) {
       transporter.sendMail({
         from: process.env.EMAIL_USER,
@@ -145,7 +133,12 @@ exports.submitUserProperty = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Please fill all required fields.' });
     }
 
-    const property = new Property({
+    const areaVal = (() => {
+      const val = Array.isArray(propArea) ? propArea.find(v => v !== '') : propArea;
+      return val && val !== '' && !isNaN(Number(val)) ? Number(val) : undefined;
+    })();
+
+    const property = await Property.createProperty({
       title: title.trim(),
       description: description || '',
       price: Number(price),
@@ -156,10 +149,7 @@ exports.submitUserProperty = async (req, res) => {
       location: { area: locationArea.trim(), city: city.trim(), state: state || 'Rajasthan', pincode: pincode || '' },
       bedrooms: Number(bedrooms) || 0,
       bathrooms: Number(bathrooms) || 0,
-      area: (() => {
-        const val = Array.isArray(propArea) ? propArea.find(v => v !== '') : propArea;
-        return val && val !== '' && !isNaN(Number(val)) ? Number(val) : undefined;
-      })(),
+      area: areaVal,
       photos: [],
       contactNumber: contactNumber.trim(),
       whatsappNumber: whatsappNumber ? whatsappNumber.trim() : '',
@@ -169,8 +159,7 @@ exports.submitUserProperty = async (req, res) => {
       isUserSubmitted: true
     });
 
-    await property.save();
-    res.json({ success: true, propertyId: property._id });
+    res.json({ success: true, propertyId: property.id });
 
   } catch (err) {
     console.error(err);
@@ -183,17 +172,15 @@ exports.uploadPropertyPhotos = async (req, res) => {
   try {
     const { propertyId } = req.body;
     if (!propertyId) return res.status(400).json({ success: false, error: 'Property ID missing.' });
-    
+
     const photos = req.files ? req.files.map(f => f.path) : [];
     if (photos.length > 0) {
-      await Property.findByIdAndUpdate(propertyId, { $push: { photos: { $each: photos } } });
+      await Property.addPhotos(propertyId, photos);
     }
     res.json({ success: true, uploaded: photos.length });
-    
+
   } catch (err) {
-    
-    console.error('Photo upload FULL ERROR:', JSON.stringify(err, null, 2));
-    console.error('Photo upload MESSAGE:', err.message);
+    console.error('Photo upload ERROR:', err.message);
     console.error('Photo upload STACK:', err.stack);
     res.status(500).json({ success: false, error: err.message || 'Photo upload failed.' });
   }

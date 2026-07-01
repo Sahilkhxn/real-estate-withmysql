@@ -1,65 +1,73 @@
-# 🏠 Webjinny — Real Estate Listing Platform
+#  Webjinny — Real Estate Listing Platform
 
-OLX-inspired real estate website. Node.js + Express + MongoDB + EJS.
+OLX-inspired real estate website built with Node.js, Express.js, MongoDB, and EJS.
 
 ---
-
-## ⚡ Quick Setup (Windows)
+## Quick Setup (Windows)
 
 ### Step 1 — Prerequisites
-- Node.js installed → https://nodejs.org
-- MongoDB installed → https://www.mongodb.com/try/download/community
-- MongoDB ko start karo: Start Menu → "MongoDB" → Run
+
+Install Node.js → https://nodejs.org
+Install MongoDB → https://www.mongodb.com/try/download/community
+Start MongoDB from the Start Menu or run it as a service.
 
 ### Step 2 — Project Setup
+
 ```bash
-# Project folder mein jao
+# Navigate to the project folder
 cd path/to/realestate2
 
-# Dependencies install karo
+# Install dependencies
 npm install
 
-# Database seed karo (25 sample properties + admin user)
+# Seed the database (25 sample properties + admin user)
 npm run seed
 ```
 
-### Step 3 — Server Start
+### Step 3 — Start the Server
+
 ```bash
 npm run dev
-# ya
+
+# or
+
 npm start
 ```
 
-Browser mein open karo: **http://localhost:3000**
+Open your browser and visit:
+
+**http://localhost:3000**
 
 ---
 
-## 🔐 Admin Login
-- URL: http://localhost:3000/admin/login  
-- Username: ****  
-- Password: ****
+##  Admin Login
+
+ URL: http://localhost:3000/admin/login
+ Username: ****
+Password: ****
 
 ---
 
-## 📁 Folder Structure
-```
+##  Folder Structure
+
+```text
 realestate2/
 ├── controllers/
-│   ├── adminController.js    # Admin CRUD logic
-│   └── propertyController.js # Public pages logic
+│   ├── adminController.js      # Admin CRUD operations
+│   └── propertyController.js   # Public page logic
 ├── middleware/
-│   ├── auth.js               # JWT protection
-│   └── upload.js             # Multer photo upload
+│   ├── auth.js                 # JWT authentication middleware
+│   └── upload.js               # Multer file upload configuration
 ├── models/
-│   ├── Admin.js              # Admin schema
-│   └── Property.js           # Property schema
+│   ├── Admin.js                # Admin schema
+│   └── Property.js             # Property schema
 ├── public/
-│   ├── css/style.css         # Main stylesheet
-│   ├── js/main.js            # Frontend JS
-│   └── uploads/              # Property photos (auto-created)
+│   ├── css/style.css           # Main stylesheet
+│   ├── js/main.js              # Frontend JavaScript
+│   └── uploads/                # Property images (auto-created)
 ├── routes/
-│   ├── admin.js              # /admin/* routes
-│   └── public.js             # / and /properties routes
+│   ├── admin.js                # Admin routes
+│   └── public.js               # Public routes
 ├── views/
 │   ├── admin/
 │   │   ├── login.ejs
@@ -70,38 +78,47 @@ realestate2/
 │   │   ├── header.ejs
 │   │   ├── footer.ejs
 │   │   └── property-card.ejs
-│   ├── index.ejs             # Homepage
-│   ├── properties.ejs        # Search/listing page
-│   ├── property-detail.ejs   # Single property page
+│   ├── index.ejs               # Homepage
+│   ├── properties.ejs          # Property listing/search page
+│   ├── property-detail.ejs     # Single property details page
 │   └── error.ejs
-├── .env                      # Config (edit this)
-├── seed.js                   # Sample data script
-└── server.js                 # Entry point
+├── .env                        # Environment configuration
+├── seed.js                     # Sample data generation script
+└── server.js                   # Application entry point
 ```
 
 ---
 
-## 🎯 Features
-- ✅ Homepage with search + filters
-- ✅ Property grid with pagination (200+ support)
-- ✅ Detail page with photo gallery, WhatsApp button, Call button, Enquiry form
-- ✅ Admin panel (JWT protected)
-- ✅ Add/Edit/Delete properties
-- ✅ Multi-photo upload (drag & drop)
-- ✅ Status toggle (Available/Sold/Rented) — inline AJAX
-- ✅ Featured property toggle
-- ✅ Mobile responsive design
+##  Features
+
+ Homepage with search and filtering options
+ Property listing grid with pagination (supports 200+ properties)
+ Property detail page with:
+
+Photo gallery
+WhatsApp contact button
+ Call button
+ Inquiry form
+ Secure admin dashboard (JWT protected)
+ Create, edit, and delete property listings
+ Multi-image upload with drag-and-drop support
+ Inline AJAX status updates (Available / Sold / Rented)
+ Featured property toggle
+ Fully responsive mobile-friendly design
 
 ---
 
-## 🔧 .env Config
+##  Environment Configuration
+
+Configure all required environment variables inside the `.env` file before running the application.
 
 ---
 
-## 📞 Tech Stack
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB + Mongoose
-- **Auth**: JWT + bcryptjs
-- **Templates**: EJS
-- **File Upload**: Multer
-- **Frontend**: Vanilla JS, CSS3 (no React/Vue)
+##  Tech Stack
+
+Backend:** Node.js, Express.js
+Database:** MongoDB + Mongoose
+Authentication:** JWT + bcryptjs
+Templating Engine:** EJS
+File Uploads:** Multer
+Frontend:** Vanilla JavaScript, CSS3 (No React or Vue)

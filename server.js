@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const methodOverride = require('method-override');
@@ -13,9 +12,9 @@ const PORT = process.env.PORT || 3000;
 // ─── Database ───────────────────────────────────────────────────
 if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is missing!');
 if (!process.env.SESSION_SECRET) throw new Error('SESSION_SECRET is missing!');
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/realestate')
-  .then(() => console.log(' MongoDB connected'))
-  .catch(err => { console.error(' MongoDB error:', err); process.exit(1); });
+
+const { testConnection } = require('./db');
+testConnection();
 
 // ─── View Engine ─────────────────────────────────────────────────
 app.set('view engine', 'ejs');
@@ -23,7 +22,6 @@ app.set('views', path.join(__dirname, 'views'));
 
 // ─── Middleware ───────────────────────────────────────────────────
 app.use(express.urlencoded({ extended: true }));
-
 app.use(express.json());
 app.use(cookieParser());
 app.use(session({
@@ -34,7 +32,6 @@ app.use(session({
 }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 // ─── Routes ───────────────────────────────────────────────────────
 app.use('/', require('./routes/public'));
