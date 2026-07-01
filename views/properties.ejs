@@ -1,6 +1,5 @@
 <%- include('partials/header', { title: 'All Properties', currentType: query.type }) %>
-
- <!-- FILTER BAR -->
+<!-- FILTER BAR -->
 <div class="filter-bar">
   <div class="filter-inner">
     <a class="fitem <%= !query.type && !query.category ? 'active' : '' %>" onclick="location.href='/properties'">
@@ -9,7 +8,6 @@
     <div class="filter-sep"></div>
     <a class="fitem <%= query.type==='buy'  ? 'active':'' %>" onclick="setFilter('type','buy')"><span class="fitem-icon"></span>Buy</a>
     <a class="fitem <%= query.type==='rent' ? 'active':'' %>" onclick="setFilter('type','rent')"><span class="fitem-icon"></span>Rent</a>
-    <a class="fitem <%= query.type==='sell' ? 'active':'' %>" onclick="setFilter('type','sell')"><span class="fitem-icon"></span>Sell</a>
     <div class="filter-sep"></div>
     <a class="fitem <%= query.category==='apartment'  ? 'active':'' %>" onclick="setFilter('category','apartment')"><span class="fitem-icon"></span>Apartment</a>
     <a class="fitem <%= query.category==='house'      ? 'active':'' %>" onclick="setFilter('category','house')"><span class="fitem-icon"></span>House</a>

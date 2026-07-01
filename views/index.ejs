@@ -15,7 +15,7 @@
       <div class="search-tabs" id="searchTabs">
         <div class="stab <%= !query.type || query.type==='buy'  ? 'active' : '' %>" data-type="buy"> &nbsp;Buy</div>
         <div class="stab <%= query.type==='rent' ? 'active' : '' %>" data-type="rent"> &nbsp;Rent</div>
-        <div class="stab <%= query.type==='sell' ? 'active' : '' %>" data-type="sell"> &nbsp;Sell</div>
+        <!-- <div class="stab <%= query.type==='sell' ? 'active' : '' %>" data-type="sell"> &nbsp;Sell</div> -->
       </div>
       <form id="searchForm" action="/properties" method="GET">
         <input type="hidden" name="type" id="searchType" value="<%= query.type || 'buy' %>"/>
@@ -72,7 +72,7 @@
     <div class="filter-sep"></div>
     <a href="/properties?type=buy"  class="fitem <%= query.type==='buy'  ? 'active':'' %>"><span class="fitem-icon"></span>Buy</a>
     <a href="/properties?type=rent" class="fitem <%= query.type==='rent' ? 'active':'' %>"><span class="fitem-icon"></span>Rent</a>
-    <a href="/properties?type=sell" class="fitem <%= query.type==='sell' ? 'active':'' %>"><span class="fitem-icon"></span>Sell</a>
+    <!-- <a href="/properties?type=sell" class="fitem <%= query.type==='sell' ? 'active':'' %>"><span class="fitem-icon"></span>Sell</a> -->
     <div class="filter-sep"></div>
     <a href="/properties?category=apartment"  class="fitem <%= query.category==='apartment'  ? 'active':'' %>"><span class="fitem-icon"></span>Apartment</a>
     <a href="/properties?category=house"      class="fitem <%= query.category==='house'      ? 'active':'' %>"><span class="fitem-icon"></span>House</a>
