@@ -124,7 +124,6 @@ exports.listPropertyPage = (req, res) => {
   res.render('list-property', { error: null, success: null });
 };
 
-// ---- User Property Submit (FAST — sirf text, photos alag AJAX se) ----
 exports.submitUserProperty = async (req, res) => {
   try {
     const { name, phone, title, description, price, priceType, type, propertyCategory, locationArea, city, state, pincode, bedrooms, bathrooms, propArea, amenities, contactNumber, whatsappNumber, ownerEmail } = req.body;
@@ -132,6 +131,9 @@ exports.submitUserProperty = async (req, res) => {
     if (!name || !phone || !title || !price || !type || !locationArea || !city || !contactNumber) {
       return res.status(400).json({ success: false, error: 'Please fill all required fields.' });
     }
+
+    // User "Sell" chunta hai to buyer-facing type 'buy' honi chahiye
+    const savedType = type === 'sell' ? 'buy' : type;
 
     const areaVal = (() => {
       const val = Array.isArray(propArea) ? propArea.find(v => v !== '') : propArea;
@@ -143,7 +145,7 @@ exports.submitUserProperty = async (req, res) => {
       description: description || '',
       price: Number(price),
       priceType: priceType || 'total',
-      type,
+      type: savedType,
       propertyCategory: propertyCategory || 'apartment',
       status: 'pending',
       location: { area: locationArea.trim(), city: city.trim(), state: state || 'Rajasthan', pincode: pincode || '' },
