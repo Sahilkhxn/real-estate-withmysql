@@ -86,6 +86,7 @@ exports.propertyDetail = async (req, res) => {
 // ---- Enquiry form (AJAX) ----
 exports.submitEnquiry = async (req, res) => {
   try {
+    console.log('Enquiry hit:', req.body);
     const { name, phone, email, message, propertyId } = req.body;
     if (!name || !phone || !message) {
       return res.status(400).json({ success: false, message: 'Name, phone and message are required.' });
@@ -94,31 +95,33 @@ exports.submitEnquiry = async (req, res) => {
     await Enquiry.createEnquiry({ name, phone, email, message, propertyId });
 
     const property = await Property.getPropertyById(propertyId);
-    if (property) {
-      transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: property.ownerEmail || process.env.ADMIN_EMAIL,
-        subject: `New Enquiry for: ${property.title}`,
-        html: `
-          <h3>New Property Enquiry — Webjinny</h3>
-          <p><b>Property:</b> ${property.title}</p>
-          <p><b>Location:</b> ${property.location.area}, ${property.location.city}</p>
-          <p><b>Enquiry From:</b> ${name}</p>
-          <p><b>Phone:</b> ${phone}</p>
-          <p><b>Email:</b> ${email || 'Not provided'}</p>
-          <p><b>Message:</b> ${message}</p>
-          <hr/>
-          <p><b>Owner Contact:</b> ${property.contactNumber}</p>
-        `,
-      }).catch(err => console.error('Enquiry email error:', err));
-    }
+    const propertyTitle = property ? property.title : 'Unknown Property';
+    const propertyLink = `https://webjinny.in/property/${propertyId}`;
+
+    transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: `New Enquiry for: ${propertyTitle}`,
+      html: `
+        <h3>New Property Enquiry — Webjinny</h3>
+        <p><b>Property:</b> ${propertyTitle}</p>
+        <p><b>Enquiry From:</b> ${name}</p>
+        <p><b>Phone:</b> ${phone}</p>
+        <p><b>Email:</b> ${email || 'Not provided'}</p>
+        <p><b>Message:</b> ${message}</p>
+        <p><b>View Property:</b> <a href="${propertyLink}">${propertyLink}</a></p>
+
+
+      `,
+    }).then(() => console.log('Email sent!'))
+      .catch(err => console.error('Enquiry email error:', err));
+
     res.json({ success: true, message: 'Enquiry submitted!' });
   } catch (err) {
     console.error('Enquiry error:', err);
     res.status(500).json({ success: false, message: 'Failed to submit enquiry.' });
   }
 };
-
 // ---- User Property Listing Page ----
 exports.listPropertyPage = (req, res) => {
   res.render('list-property', { error: null, success: null });
