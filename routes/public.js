@@ -34,4 +34,8 @@ router.get('/privacy-policy', (req, res) => {
   res.render('privacy-policy', { title: 'Privacy Policy' });
 });
 
+router.get('/terms-and-refund', (req, res) => {
+  res.render('terms-and-refund', { title: 'Terms & Refund Policy' });
+});
+
 module.exports = router;
